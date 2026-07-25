@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mahmoud AI</title>
+<style>
+  :root{
+    --bg-deep: #212121;
+    --bg-panel: #171717;
+    --bg-bubble-user: #2f2f2f;
+    --bg-bubble-ai: #212121;
+    --gold: #10a37f;
+    --gold-soft: #4fd1a5;
+    --ink: #ececf1;
+    --ink-dim: #8e8ea0;
+    --line: #3d3d3f;
+    --danger: #ef4444;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background: var(--bg-deep);
+    color:var(--ink);
+    font-family:-apple-system, 'Segoe UI', 'Cairo', sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  /* header */
+  header{
+    padding:20px 20px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(16,163,127,0.08), transparent);
+  }
+  .mark{
+    width:42px;height:42px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--gold-soft), #0b3d30, var(--gold));
+    display:flex;align-items:center;justify-content:center;
+    font-family:-apple-system, 'Segoe UI', 'Cairo', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    color:#0a1f19;
+    flex-shrink:0;
+  }
+  header h1{
+    font-family:-apple-system, 'Segoe UI', 'Cairo', sans-serif;
+    font-size:22px;
+    margin:0;
+    color:var(--gold-soft);
+    font-weight:700;
+  }
+  header p{
+    margin:2px 0 0;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+  .status-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--ink-dim);
+    margin-inline-start:auto;
+    transition:background .3s;
+    flex-shrink:0;
+  }
+  .status-dot.live{background:#5fbf8f; box-shadow:0 0 8px #5fbf8f;}
+  .status-dot.thinking{background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  /* chat area */
+  #chat{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 16px 10px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .row{display:flex; width:100%;}
+  .row.user{justify-content:flex-start;}
+  .row.ai{justify-content:flex-end;}
+  .bubble{
+    max-width:82%;
+    padding:12px 16px;
+    border-radius:18px;
+    line-height:1.7;
+    font-size:15.5px;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    box-shadow:0 2px 10px rgba(0,0,0,0.25);
+  }
+  .row.user .bubble{
+    background:var(--bg-bubble-user);
+    border-bottom-left-radius:6px;
+    color:#eafaf3;
+  }
+  .row.ai .bubble{
+    background:var(--bg-bubble-ai);
+    border:1px solid var(--line);
+    border-bottom-right-radius:6px;
+  }
+  .row.ai .bubble.speaking{
+    border-color:var(--gold);
+  }
+  .empty-state{
+    margin:auto;
+    text-align:center;
+    color:var(--ink-dim);
+    padding:0 30px;
+  }
+  /* header icon buttons */
+  .header-btn{
+    width:36px;height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--bg-panel);
+    color:var(--ink-dim);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .header-btn svg{width:17px;height:17px;}
+  .header-btn:active{transform:scale(0.92);}
+
+  /* settings modal (API key) */
+  .modal-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-card{
+    width:100%; max-width:340px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:22px;
+    text-align:center;
+  }
+  .modal-card h2{color:var(--gold-soft); font-size:18px; margin:0 0 6px;}
+  .modal-card p{color:var(--ink-dim); font-size:13px; line-height:1.7; margin:0 0 14px;}
+  .modal-card .key-note{font-size:11px; margin-top:12px;}
+  #apiKeyInput{
+    width:100%;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    color:var(--ink);
+    font-size:14px;
+    text-align:center;
+    direction:ltr;
+    margin-bottom:12px;
+  }
+  #apiKeyInput:focus{outline:none; border-color:var(--gold);}
+  #providerSelect{
+    width:100%;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    color:var(--ink);
+    font-size:13.5px;
+    margin-bottom:12px;
+    direction:rtl;
+  }
+  #providerSelect:focus{outline:none; border-color:var(--gold);}
+  #modelSelect{
+    width:100%;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    color:var(--ink);
+    font-size:13.5px;
+    margin-bottom:12px;
+    direction:rtl;
+  }
+  #modelSelect:focus{outline:none; border-color:var(--gold);}
+  #voiceSelect{
+    width:100%;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    color:var(--ink);
+    font-size:13.5px;
+    margin-bottom:12px;
+    direction:rtl;
+  }
+  #voiceSelect:focus{outline:none; border-color:var(--gold);}
+  #saveKeyBtn{
+    width:100%;
+    background:linear-gradient(135deg, var(--gold), #0d8a6c);
+    color:#08251c;
+    border:none;
+    border-radius:14px;
+    padding:12px 28px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .modal-close{
+    display:block;
+    margin:12px auto 0;
+    background:none; border:none;
+    color:var(--ink-dim);
+    font-size:12px;
+    cursor:pointer;
+  }
+
+  /* live voice mode overlay */
+  .voice-overlay{
+    position:fixed; inset:0;
+    background:#000;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    z-index:60;
+    padding:40px 20px calc(50px + env(safe-area-inset-bottom));
+  }
+  .voice-overlay.open{display:flex;}
+  .voice-top{text-align:center; color:var(--ink-dim); font-size:13px; min-height:20px;}
+  .orb-wrap{flex:1; display:flex; align-items:center; justify-content:center;}
+  .orb{
+    width:180px;height:180px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold-soft), var(--gold) 45%, #0b3d30 100%);
+    box-shadow:0 0 60px rgba(16,163,127,0.35);
+    transition:transform .25s ease;
+  }
+  .orb.listening{animation:orbListen 1.6s ease-in-out infinite;}
+  .orb.thinking{animation:orbThink 1s linear infinite;}
+  .orb.speaking{animation:orbSpeak .5s ease-in-out infinite;}
+  @keyframes orbListen{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+  @keyframes orbThink{0%{transform:scale(1) rotate(0deg);}50%{transform:scale(0.94) rotate(180deg);}100%{transform:scale(1) rotate(360deg);}}
+  @keyframes orbSpeak{0%,100%{transform:scale(1);}50%{transform:scale(1.14);}}
+  .voice-controls{display:flex; align-items:center; gap:28px;}
+  .voice-btn{
+    width:56px;height:56px;border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--bg-panel);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .voice-btn svg{width:22px;height:22px;}
+  .voice-btn.end{background:var(--danger); border-color:var(--danger); color:#fff;}
+  .empty-state .mark{margin:0 auto 18px; width:64px;height:64px;font-size:30px;}
+  .empty-state h2{font-family:-apple-system, 'Segoe UI', 'Cairo', sans-serif; color:var(--gold-soft); font-size:20px; margin:0 0 8px;}
+  .empty-state p{font-size:13.5px; line-height:1.8; margin:0;}
+
+  .typing{display:flex; gap:4px; padding:6px 4px;}
+  .typing span{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--ink-dim);
+    animation:bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2){animation-delay:.15s;}
+  .typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0); opacity:.4;}30%{transform:translateY(-5px); opacity:1;}}
+
+  /* input bar - single rounded pill, like reference layout */
+  .inputbar{
+    padding:10px 14px calc(14px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);
+    background:var(--bg-panel);
+  }
+  .pill{
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:28px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 8px;
+  }
+  textarea{
+    flex:1;
+    resize:none;
+    max-height:110px;
+    background:transparent;
+    border:none;
+    padding:9px 8px;
+    color:var(--ink);
+    font-family:-apple-system, 'Segoe UI', 'Cairo', sans-serif;
+    font-size:15px;
+    line-height:1.5;
+  }
+  textarea:focus{outline:none;}
+  textarea::placeholder{color:var(--ink-dim);}
+  button.icon-btn{
+    flex-shrink:0;
+    width:38px;height:38px;
+    border-radius:50%;
+    border:none;
+    cursor:pointer;
+    background:transparent;
+    color:var(--ink-dim);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .12s, background .15s;
+  }
+  button.icon-btn:active{transform:scale(0.9);}
+  #attachBtn svg{width:19px;height:19px;}
+  #micBtn svg{width:19px;height:19px;}
+  #micBtn.recording{
+    background:var(--danger);
+    color:#fff;
+    animation:recpulse 1.4s infinite;
+  }
+  @keyframes recpulse{0%,100%{box-shadow:0 0 0 0 rgba(192,101,79,0.5);}50%{box-shadow:0 0 0 8px rgba(192,101,79,0);}}
+  #sendBtn, #pillVoiceBtn{
+    width:38px;height:38px;
+    background:linear-gradient(135deg, var(--gold), #0d8a6c);
+    color:#08251c;
+  }
+  #sendBtn{display:none;}
+  #sendBtn.show{display:flex;}
+  #pillVoiceBtn.hide{display:none;}
+  #sendBtn svg{width:17px;height:17px;}
+  #pillVoiceBtn svg{width:18px;height:18px;}
+
+  .hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-dim);
+    padding:6px 20px 0;
+  }
+  .voice-toggle{
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;color:var(--ink-dim);
+    padding:8px 20px 0;
+    justify-content:center;
+  }
+  .voice-toggle input{accent-color:var(--gold);}
+  .attach-chip{
+    margin:8px 16px 0;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:8px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:12.5px;
+    color:var(--ink-dim);
+  }
+  #attachName{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  #removeAttachBtn{
+    background:none; border:none; color:var(--danger);
+    font-size:14px; cursor:pointer; padding:0 4px;
+    flex-shrink:0;
+  }
+
+  #chat::-webkit-scrollbar{width:5px;}
+  #chat::-webkit-scrollbar-thumb{background:var(--line); border-radius:10px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="mark">M</div>
+    <div>
+      <h1>Mahmoud AI</h1>
+      <p id="subtitle">مساعدك الشخصي بالصوت والنص</p>
+    </div>
+    <button class="header-btn" id="settingsBtn" title="إعدادات المفتاح" style="margin-inline-start:auto;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </button>
+    <div class="status-dot" id="statusDot"></div>
+  </header>
+
+  <div id="chat">
+    <div class="empty-state" id="emptyState">
+      <div class="mark">M</div>
+      <h2>أهلاً محمود</h2>
+      <p>احكيلي أو اكتبلي أي شي.<br>دوس على أيقونة السماعة فوق "تكلم مع بنت" لمحادثة صوتية مباشرة بصوت عربي، أو دوس المايكروفون تحت لتسجيل رسالة وحدة.</p>
+    </div>
+  </div>
+
+  <div class="voice-toggle">
+    <label><input type="checkbox" id="autoSpeak" checked> يرد عليّ بالصوت تلقائياً</label>
+  </div>
+
+  <div class="attach-chip" id="attachChip" style="display:none;">
+    <span id="attachName"></span>
+    <button id="removeAttachBtn" title="حذف المرفق">✕</button>
+  </div>
+
+  <div class="inputbar">
+    <div class="pill">
+      <input type="file" id="fileInput" accept="image/*,.txt,.md,.csv,.json" style="display:none;">
+      <button class="icon-btn" id="attachBtn" title="إرفاق ملف">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <textarea id="textInput" placeholder="اسألني أي شي..." rows="1"></textarea>
+      <button class="icon-btn" id="micBtn" title="تسجيل صوتي">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+      </button>
+      <button class="icon-btn" id="sendBtn" title="إرسال">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>
+      </button>
+      <button class="icon-btn" id="pillVoiceBtn" title="تكلم مع بنت (صوت عربي)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 10v4h2v-4H4zm4-3v10h2V7H8zm4-3v16h2V4h-2zm4 3v10h2V7h-2zm4 3v4h2v-4h-2z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="hint" id="hint"></div>
+</div>
+
+<!-- settings modal: API key lives here now, not blocking the main screen -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal-card">
+    <h2>مفتاح API</h2>
+    <p>حتى يشتغل التطبيق لحاله (خارج Claude)، لازم تحط مفتاح Anthropic API الخاص فيك.</p>
+    <select id="providerSelect">
+      <option value="anthropic" selected>Anthropic مباشر (sk-ant-...)</option>
+      <option value="openrouter">OpenRouter (sk-or-v1-...)</option>
+    </select>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+    <select id="modelSelect">
+      <option value="claude-sonnet-5" selected>Sonnet 5 — متوازن وسريع</option>
+      <option value="claude-opus-4-8">Opus 4.8 — الأقوى</option>
+      <option value="claude-haiku-4-5-20251001">Haiku 4.5 — الأرخص والأسرع</option>
+    </select>
+    <select id="voiceSelect">
+      <option value="">جاري تحميل الأصوات...</option>
+    </select>
+    <button id="saveKeyBtn">حفظ</button>
+    <p class="key-note">المفتاح بينخزن بس بالجلسة الحالية على جهازك، ما بينبعت لأي مكان غير Anthropic مباشرة.</p>
+    <button class="modal-close" id="closeSettingsBtn">إغلاق</button>
+  </div>
+</div>
+
+<!-- immersive live voice mode, like ChatGPT voice -->
+<div class="voice-overlay" id="voiceOverlay">
+  <div class="voice-top" id="voiceStatus">دوس على الدائرة تحكي</div>
+  <div class="orb-wrap"><div class="orb" id="orb"></div></div>
+  <div class="voice-controls">
+    <button class="voice-btn end" id="endVoiceBtn" title="إنهاء">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.4 6.4L12 12l5.6-5.6 1.4 1.4L13.4 12l5.6 5.6-1.4 1.4L12 13.4 6.4 19l-1.4-1.4L10.6 12 5 6.4z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const chat = document.getElementById('chat');
+const emptyState = document.getElementById('emptyState');
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
+const micBtn = document.getElementById('micBtn');
+const statusDot = document.getElementById('statusDot');
+const hint = document.getElementById('hint');
+const autoSpeak = document.getElementById('autoSpeak');
+const fileInput = document.getElementById('fileInput');
+const attachBtn = document.getElementById('attachBtn');
+const attachChip = document.getElementById('attachChip');
+const attachName = document.getElementById('attachName');
+const removeAttachBtn = document.getElementById('removeAttachBtn');
+
+let history = [];
+let isRecording = false;
+let recognition = null;
+let apiKey = '';
+let voiceModeActive = false;
+let pendingAttachment = null; // { kind:'image'|'text', name, mediaType, base64, text }
+
+const settingsModal = document.getElementById('settingsModal');
+const settingsBtn = document.getElementById('settingsBtn');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const providerSelect = document.getElementById('providerSelect');
+const apiKeyInput = document.getElementById('apiKeyInput');
+let selectedProvider = providerSelect.value;
+
+providerSelect.addEventListener('change', () => {
+  apiKeyInput.placeholder = providerSelect.value === 'openrouter' ? 'sk-or-v1-...' : 'sk-ant-...';
+});
+const saveKeyBtn = document.getElementById('saveKeyBtn');
+const modelSelect = document.getElementById('modelSelect');
+const voiceSelect = document.getElementById('voiceSelect');
+let selectedModel = modelSelect.value;
+let selectedVoiceURI = '';
+
+function populateVoices(){
+  if (!('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+  const arabic = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
+  const others = voices.filter(v => !v.lang || !v.lang.toLowerCase().startsWith('ar'));
+  const list = [...arabic, ...others];
+
+  const femaleHints = ['female','woman','fatima','salma','laila','zeina','hoda','samira','lina'];
+  voiceSelect.innerHTML = '';
+  list.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.voiceURI;
+    const isLikelyFemale = femaleHints.some(h => v.name.toLowerCase().includes(h));
+    const tag = v.lang.toLowerCase().startsWith('ar') ? ' 🇸🇦' : '';
+    opt.textContent = v.name + (isLikelyFemale ? ' (بنت)' : '') + tag;
+    voiceSelect.appendChild(opt);
+  });
+  // auto-prefer an Arabic female-sounding voice by default
+  const preferred = arabic.find(v => femaleHints.some(h => v.name.toLowerCase().includes(h))) || arabic[0] || list[0];
+  if (preferred && !selectedVoiceURI) {
+    selectedVoiceURI = preferred.voiceURI;
+    voiceSelect.value = preferred.voiceURI;
+  }
+}
+if ('speechSynthesis' in window) {
+  populateVoices();
+  window.speechSynthesis.onvoiceschanged = populateVoices;
+}
+
+function openSettings(){ settingsModal.classList.add('open'); }
+function closeSettings(){ settingsModal.classList.remove('open'); }
+settingsBtn.addEventListener('click', openSettings);
+closeSettingsBtn.addEventListener('click', closeSettings);
+saveKeyBtn.addEventListener('click', () => {
+  const val = apiKeyInput.value.trim();
+  if (!val) return;
+  apiKey = val;
+  selectedProvider = providerSelect.value;
+  selectedModel = modelSelect.value;
+  selectedVoiceURI = voiceSelect.value;
+  closeSettings();
+});
+
+// ---- Live voice mode (ChatGPT-style continuous conversation) ----
+const voiceModeBtn = document.getElementById('pillVoiceBtn');
+const voiceOverlay = document.getElementById('voiceOverlay');
+const voiceStatus = document.getElementById('voiceStatus');
+const orb = document.getElementById('orb');
+const endVoiceBtn = document.getElementById('endVoiceBtn');
+
+function setOrbState(state){
+  orb.classList.remove('listening','thinking','speaking');
+  if (state) orb.classList.add(state);
+  const labels = {
+    idle: 'دوس على الدائرة تحكي',
+    listening: 'عم بسمعك...',
+    thinking: 'عم فكر...',
+    speaking: 'عم أحكي...'
+  };
+  voiceStatus.textContent = labels[state] || labels.idle;
+}
+
+voiceModeBtn.addEventListener('click', () => {
+  if (!apiKey) { openSettings(); return; }
+  voiceModeActive = true;
+  voiceOverlay.classList.add('open');
+  setOrbState('idle');
+});
+
+endVoiceBtn.addEventListener('click', () => {
+  voiceModeActive = false;
+  if (recognition && isRecording) recognition.stop();
+  window.speechSynthesis.cancel();
+  voiceOverlay.classList.remove('open');
+});
+
+orb.addEventListener('click', () => {
+  if (!recognition) return;
+  if (isRecording) { recognition.stop(); return; }
+  if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  try { recognition.start(); } catch(e) {}
+});
+
+// ---- Setup speech recognition (Arabic) ----
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ar-SA';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add('recording');
+    if (voiceModeActive) setOrbState('listening');
+  };
+  recognition.onend = () => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+  };
+  recognition.onerror = (e) => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    if (voiceModeActive) {
+      setOrbState('idle');
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        voiceStatus.textContent = 'صار خطأ، دوس تحكي كمان مرة';
+      }
+      return;
+    }
+    if (e.error === 'not-allowed') {
+      hint.textContent = 'لازم تسمح باستخدام المايكروفون من إعدادات المتصفح.';
+    } else if (e.error === 'no-speech') {
+      hint.textContent = 'ما سمعت صوت، جرب مرة ثانية.';
+    } else {
+      hint.textContent = 'صار خطأ بالتسجيل الصوتي (' + e.error + ').';
+    }
+  };
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    if (voiceModeActive) {
+      setOrbState('thinking');
+      sendMessage(transcript);
+    } else {
+      textInput.value = transcript;
+      sendMessage(transcript);
+    }
+  };
+} else {
+  hint.textContent = 'المتصفح هذا ما بيدعم التسجيل الصوتي. جرب Chrome.';
+  micBtn.disabled = true;
+  micBtn.style.opacity = 0.4;
+}
+
+// ---- File attachments (images or text files) ----
+attachBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const MAX_TEXT_CHARS = 6000;
+
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      pendingAttachment = { kind: 'image', name: file.name, mediaType: file.type, base64 };
+      attachName.textContent = '🖼️ ' + file.name;
+      attachChip.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = () => {
+      let text = reader.result;
+      if (text.length > MAX_TEXT_CHARS) text = text.slice(0, MAX_TEXT_CHARS) + '\n...[تم اختصار الملف]';
+      pendingAttachment = { kind: 'text', name: file.name, text };
+      attachName.textContent = '📄 ' + file.name;
+      attachChip.style.display = 'flex';
+    };
+    reader.readAsText(file);
+  }
+  fileInput.value = '';
+});
+
+removeAttachBtn.addEventListener('click', () => {
+  pendingAttachment = null;
+  attachChip.style.display = 'none';
+});
+
+micBtn.addEventListener('click', () => {
+  if (!recognition) return;
+  if (isRecording) {
+    recognition.stop();
+  } else {
+    hint.textContent = '';
+    try { recognition.start(); } catch(e) {}
+  }
+});
+
+// ---- Text to speech (Arabic) ----
+function speak(text) {
+  if (!voiceModeActive && !autoSpeak.checked) return;
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ar-SA';
+  const voices = window.speechSynthesis.getVoices();
+  let chosen = voices.find(v => v.voiceURI === selectedVoiceURI);
+  if (!chosen) chosen = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
+  if (chosen) utter.voice = chosen;
+  utter.rate = 1.0;
+  if (voiceModeActive) {
+    setOrbState('speaking');
+    utter.onend = () => {
+      if (!voiceModeActive) return;
+      setOrbState('idle');
+      setTimeout(() => {
+        if (voiceModeActive && recognition) { try { recognition.start(); } catch(e) {} }
+      }, 300);
+    };
+    utter.onerror = () => { if (voiceModeActive) setOrbState('idle'); };
+  }
+  window.speechSynthesis.speak(utter);
+}
+
+// ---- Chat rendering ----
+function addBubble(role, text) {
+  emptyState.style.display = 'none';
+  const row = document.createElement('div');
+  row.className = 'row ' + (role === 'user' ? 'user' : 'ai');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+
+function addTypingIndicator() {
+  const row = document.createElement('div');
+  row.className = 'row ai';
+  row.id = 'typingRow';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+function removeTypingIndicator() {
+  const row = document.getElementById('typingRow');
+  if (row) row.remove();
+}
+
+function updateSendState(){
+  const hasText = textInput.value.trim().length > 0;
+  sendBtn.classList.toggle('show', hasText);
+  micBtn.style.display = hasText ? 'none' : 'flex';
+}
+
+textInput.addEventListener('input', () => {
+  textInput.style.height = 'auto';
+  textInput.style.height = Math.min(textInput.scrollHeight, 110) + 'px';
+  updateSendState();
+});
+textInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage(textInput.value);
+  }
+});
+sendBtn.addEventListener('click', () => sendMessage(textInput.value));
+updateSendState();
+
+async function sendMessage(text) {
+  text = (text || '').trim();
+  const attachment = pendingAttachment;
+  if (!text && !attachment) return;
+  if (!apiKey) {
+    if (voiceModeActive) { voiceStatus.textContent = 'لازم تحط مفتاح API الأول'; setOrbState('idle'); }
+    else hint.textContent = 'لازم تحط مفتاح API من الإعدادات فوق الأول.';
+    openSettings();
+    return;
+  }
+  textInput.value = '';
+  textInput.style.height = 'auto';
+  updateSendState();
+  hint.textContent = '';
+
+  // build the display bubble + the actual message content sent to the API
+  let displayText = text;
+  let userContent = text; // default: plain string (no attachment)
+
+  if (attachment) {
+    displayText = (text ? text + '\n' : '') + (attachment.kind === 'image' ? '📎 ' + attachment.name : '📄 ' + attachment.name);
+    if (attachment.kind === 'text') {
+      userContent = (text ? text + '\n\n' : '') + '📎 محتوى الملف المرفق (' + attachment.name + '):\n' + attachment.text;
+    } else if (selectedProvider === 'openrouter') {
+      userContent = [
+        { type: 'text', text: text || 'شو رأيك بهاي الصورة؟' },
+        { type: 'image_url', image_url: { url: 'data:' + attachment.mediaType + ';base64,' + attachment.base64 } }
+      ];
+    } else {
+      userContent = [
+        { type: 'image', source: { type: 'base64', media_type: attachment.mediaType, data: attachment.base64 } },
+        { type: 'text', text: text || 'شو رأيك بهاي الصورة؟' }
+      ];
+    }
+  }
+
+  pendingAttachment = null;
+  attachChip.style.display = 'none';
+
+  addBubble('user', displayText);
+  history.push({ role: 'user', content: userContent });
+
+  statusDot.classList.add('thinking');
+  addTypingIndicator();
+
+  const SYSTEM_PROMPT = "انت اسمك Mahmoud AI، مساعد شخصي ذكي لمحمود، بتحكي معه بالهجة الفلسطينية بشكل طبيعي ومختصر ومباشر. جاوب بشكل واضح ومفيد، وخلي ردودك مناسبة للقراءة والاستماع الصوتي (جمل قصيرة، بدون تنسيق ماركداون معقد زي العناوين أو الجداول إلا إذا طلب صراحة). إذا انبعتلك صورة أو محتوى ملف، تفاعل معه بشكل طبيعي وكأنك شفته أو قريته فعلاً.";
+
+  try {
+    let response, replyText;
+
+    if (selectedProvider === 'openrouter') {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: "anthropic/" + selectedModel,
+          max_tokens: 1000,
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history]
+        })
+      });
+      const data = await response.json();
+      removeTypingIndicator();
+      if (data.error) throw new Error(data.error.message || 'OpenRouter error');
+      replyText = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || 'ما قدرت أجاوب هلأ، جرب مرة ثانية.';
+    } else {
+      response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages: history
+        })
+      });
+      const data = await response.json();
+      removeTypingIndicator();
+      if (data.error) throw new Error(data.error.message || 'Anthropic error');
+      const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
+      replyText = textBlocks.join('\n').trim() || 'ما قدرت أجاوب هلأ، جرب مرة ثانية.';
+    }
+
+    const bubble = addBubble('ai', replyText);
+    history.push({ role: 'assistant', content: replyText });
+    bubble.classList.add('speaking');
+    speak(replyText);
+    setTimeout(() => bubble.classList.remove('speaking'), 800);
+  } catch (err) {
+    removeTypingIndicator();
+    addBubble('ai', 'صار في مشكلة بالاتصال: ' + err.message);
+    console.error(err);
+  } finally {
+    statusDot.classList.remove('thinking');
+    statusDot.classList.add('live');
+    setTimeout(() => statusDot.classList.remove('live'), 1000);
+  }
+}
+</script>
+</body>
+</html>
