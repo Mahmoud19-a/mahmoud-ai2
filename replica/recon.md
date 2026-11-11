@@ -1,179 +1,137 @@
-# Recon map: Canva (web)
+# Recon map: Spark – Ren'Py Novels (iOS)
 
-Scope: the design editor core. Start a design from a size or a template, edit it on a canvas (text, shapes, images, uploads, layers, pages), then download it. Sharing is included as a light version. Video, AI generation, print ordering and the apps marketplace are left out.
-For: a free design editor for the user's own audience, with Arabic/RTL support. Features Canva keeps for Pro (background remover, resize, brand kit, SVG and transparent PNG export) are free here. That is the positioning.
+Scope: an iOS app that runs **PC Ren'Py visual novels** on iPhone/iPad. Core slice: import a game, keep a library, launch it with a suitable engine version, play with touch controls, and manage saves (backup, restore, import, delete).
+For: the user's own app, sideloaded with SideStore. It gets an original name, icon and art, and the same kind of functionality.
 Date: 2026-11-11
+Previous recon (Lawha / design editor) moved to `replica/lawha/`.
 
-> **Evidence note.** This session's network blocks canva.com, so I could not open any Canva page directly. The facts below come from web search results. Those results include snippets of Canva's own help article on layering, grouping and aligning, plus third-party pricing reviews. Screen details not covered by those sources come from general knowledge of the product and are marked `medium` or `guess`. Before you build, check them against your own free Canva account (step 7 in the sources table).
+> **Evidence note.** This session's network blocks apps.apple.com and appadvice.com. The facts come from three places:
+> - the App Store screenshot the user sent (`screens/S00-appstore-listing.png`, kept locally and not committed)
+> - web search snippets of the App Store listing
+> - a third-party SourceForge listing
+>
+> Anything not visible there is marked `guess`. The user has the app installed through TestFlight. Screenshots of each screen from their own phone would raise most guesses to `high`.
 
 ## Sources
 
 | # | source | URL | notes |
 | --- | --- | --- | --- |
-| 1 | help center: layer, group, align | https://www.canva.com/help/layer-group-align/ | Group with Shift-click or marquee, then Group, Ctrl/⌘+G. Position menu: Forward, Backward, To front, To back. Align to page when one element is selected. (Read via search snippet.) |
-| 2 | pricing page | https://www.canva.com/pricing/ | Unreachable from here. Tiers below are from #3 to #5. |
-| 3 | third-party: Pro vs Free | https://www.stylefactoryproductions.com/blog/canva-pro-vs-free | Free is permanent. Pro adds background remover, brand kit, more stock, AI tools. |
-| 4 | third-party: pricing 2026 | https://aumiqx.com/ai-tools/canva-pro-pricing-free-vs-pro-vs-teams/ | Free $0 / Pro ≈ $15/mo or $120/yr / Business ≈ $20/user/mo / Enterprise custom. |
-| 5 | third-party: free plan limits | https://costbench.com/software/design/canva/free-plan/ | 250k+ templates on free. Free has no background remover and no brand kit. Sources disagree on storage figures. |
-| 6 | app store listing | https://apps.apple.com/app/canva/id897446215 | To check: key screens in the screenshots |
-| 7 | the user's own free account | https://www.canva.com | To do: open one design and capture each S-screen into `replica/screens/` |
+| 1 | App Store listing (search snippet) | https://apps.apple.com/us/app/-/id6474479684 | $6.99 paid + in-app purchases. Utilities. iOS 15.5+. "Data Not Collected". Says it is an independent tool, not affiliated with Ren'Py. |
+| 2 | App Store listing (user screenshot) | `replica/screens/S00-appstore-listing.png` | 4.8★ from 223 ratings, #47 Utilities. Icon row shows translate, book, wrench, import and settings icons. Screenshot "Manage Games & Saves" shows the game screen with back, "Game" chip and gear, plus an "All Saves" list with slots like `auto-7-LT1` and **+** / **…** buttons. |
+| 3 | SourceForge mirror listing | https://sourceforge.net/app/spark-renpy-novels/iphone/ | Library: import, organise, launch. **Several Ren'Py engine versions**, chosen per novel. Per-novel performance and compatibility settings. Saves: manual and automatic backups, restore, import from other installs, delete. Languages: EN, RU, KO, ZH-Hans, JA. |
+| 4 | Similar apps in the category | https://renpy-pocket-faq.pages.dev, https://mwm.ai/apps/renpyemu-for-ren-py/6751824770 | Import a game as a .zip from Files/Safari. Import PC saves. Warnings: PC save tokens may not match on another device; games with native Python extensions may not run. |
+| 5 | Ren'Py itself (open source, MIT) | https://www.renpy.org, https://github.com/renpy/renpy, https://github.com/renpy/renpy-build | The engine. Official iOS builds go through `renios` / `renpy-build`. **This is the part we build on.** |
+| 6 | The user's own TestFlight install | (on the user's phone) | To do: screenshot every screen into `replica/screens/` |
 
 ## Core loop
 
-Pick a size or a template, edit it on the canvas, then download it as PNG, JPG or PDF. All of it works for free.
+Get a PC Ren'Py game (.zip) into the app, then tap it in the library, then it runs full-screen with touch controls. Saves stay safe and can be backed up or moved.
 
 ## Screens
 
-| ID | screen | route / how to reach | purpose | key components | states seen |
+| ID | screen | how to reach | purpose | key components | states seen |
 | --- | --- | --- | --- | --- | --- |
-| S01 | Landing / sign up | `/` | Explain the product, get signed up | Hero, CTA, auth modal | logged out |
-| S02 | Auth | modal on `/login` | Email or Google sign-in | Inputs, OAuth button, error text | default, error, loading |
-| S03 | Home | `/home` | Start a new design, reopen recent ones | Search, size presets row, recent grid | empty (new user), filled |
-| S04 | Create-design picker | "Create a design" button | Choose a preset or custom size | Popover, preset list, W×H inputs + unit | default, invalid size |
-| S05 | Templates gallery | `/templates?q=` | Browse and search templates | Search, category chips, masonry grid, preview modal | loading, results, no results |
-| S06 | Projects / folders | `/projects` | All designs and folders | Grid/list toggle, folder cards, context menu | empty, filled |
-| S07 | **Editor** | `/design/:id/edit` | The product | Top bar, side panel tabs, canvas, context toolbar, page strip, zoom | new blank, filled, saving, offline, read-only |
-| S08 | Editor › Templates tab | side panel | Apply a template to the design | Search, grid | loading, results |
-| S09 | Editor › Elements tab | side panel | Shapes, lines, icons, photos | Search, sections, grid | loading, results, no results |
-| S10 | Editor › Text tab | side panel | Add heading/subheading/body, text presets | Buttons, font combos | default |
-| S11 | Editor › Uploads tab | side panel | Upload and reuse own images | Dropzone, upload progress, grid | empty, uploading, error (type/size), filled |
-| S12 | Editor › Background | side panel / page click | Page colour or image | Colour swatches, picker | default |
-| S13 | Context toolbar: text | select text | Font, size, colour, B/I/U, align, list, spacing, effects | Font dropdown, number stepper, colour picker | single, multi-select |
-| S14 | Context toolbar: image | select image | Crop, flip, filters, adjust, bg remover, transparency | Buttons, sliders panel | default, crop mode, processing |
-| S15 | Position panel | "Position" button | Layer order, align, layers list | Tabs (Arrange / Layers), drag list | one selected, many selected |
-| S16 | Resize dialog | top bar "Resize" | Copy or resize to another format | Preset checklist, custom size | default |
-| S17 | Share dialog | top bar "Share" | Link sharing, permissions | Link field, role select, copy button | private, link on |
-| S18 | Download dialog | Share › Download | Format, pages, quality, transparent bg | Select, page picker, size slider, checkbox | default, exporting, done, error |
-| S19 | Brand kit | `/brand` | Saved colours, fonts, logos | Palette editor, font pickers, logo uploads | empty, filled |
-| S20 | Presentation mode | editor "Present" | Full-screen pages | Fullscreen viewer, arrow nav | default |
-| S21 | Settings / account | `/settings` | Profile, language, delete account | Form | default, saved |
-
-Every screen except S20 also needs a mobile check. The editor shows a bottom sheet instead of a side panel on mobile (guess).
+| S01 | Library | app start | All imported novels | Grid/list of cover cards, **+** import, **…** menu, search/sort (guess) | empty (first run), filled, importing |
+| S02 | Import | **+** / import icon | Bring a game in from Files (zip or folder), share sheet or URL (guess) | Document picker, progress bar, result toast | picking, unzipping, done, error (not a Ren'Py game / no space) |
+| S03 | Game detail / launch options | tap **…** on a game | Engine version, performance and compatibility settings, rename, cover, delete | Picker (engine 7.x / 8.x), toggles, sliders, destructive button | default, changed |
+| S04 | **Player** | tap a game | Runs the novel full-screen | Ren'Py canvas, overlay: back, "Game" chip, gear (seen); rollback / skip / auto / hide UI (guess) | loading, playing, paused overlay, crash/error |
+| S05 | In-game overlay menu | gear in S04 | Quick save/load, settings, exit to library | Sheet with buttons | open |
+| S06 | Saves (per game / "All Saves") | wrench or saves entry; seen in screenshot | List of save slots with thumbnails and names (`auto-7-LT1`) | List rows with thumbnail, **+** (new backup / import), **…** (actions) | empty, filled |
+| S07 | Save actions | **…** on a save | Backup, restore, export, delete | Action sheet, confirm dialog | — |
+| S08 | Backups | from S06 | Manual and automatic backups, restore | List, restore button | empty, filled |
+| S09 | Save editor (guess, from search result) | from S07 | Edit variables in a save / persistent data | Key-value list, search, edit field | loading, error (unsupported format) |
+| S10 | Translate (guess, translate icon) | icon row | Language / translation options for a game | Language list | — |
+| S11 | Guide (book icon) | icon row | How to import games and saves | Text pages | — |
+| S12 | App settings (gear icon) | icon row | Global defaults, storage, about | Form | — |
+| S13 | Paywall / in-app purchase (guess) | locked feature | Unlock extras | Price buttons | — |
 
 ## Flows
 
 ```
-F01 New user makes a social post from a template
-    S01 -> S02 -> S03 -> S05 -> S07 -> (edit text S13) -> S18 -> file
-    happy path clicks: ~8
-    edge: font not loaded yet, template with missing image, export of very large size, Arabic text mixed with English
+F01 Import and play a game
+    S01 -> S02 (pick .zip in Files) -> unzip/validate -> S01 (new card) -> S04 playing
+    happy path taps: ~4
+    edge: zip contains a nested folder; not a Ren'Py game; .rpa archives; huge game (GBs, low storage);
+          game made for Ren'Py 6/7 (Python 2) vs 8 (Python 3); game needs native Python modules
 
-F02 Blank design at a custom size
-    S03 -> S04 (custom W×H) -> S07 (blank)
-    happy path clicks: 4
-    edge: 0 or negative size, huge size (> 8000px), unit switch mm↔px
+F02 Play with touch
+    S04: tap = advance, swipe/back = rollback, long-press or 2-finger = hide UI (guess), gear -> S05
+    edge: text input screens need the keyboard; landscape vs portrait; app goes to background mid-scene
 
-F03 Add and arrange elements
-    S07 -> S09 add shape -> S11 upload photo -> select both -> group -> S15 align centre / send backward
-    happy path clicks: ~9
-    edge: group across pages (not allowed), locked element in selection, undo after group
+F03 Back up and restore saves
+    S06 -> + backup -> S08 -> restore -> S04 continues from that save
+    happy path taps: ~4
+    edge: restore over newer saves (confirm), auto backup before every launch (guess)
 
-F04 Multi-page design to PDF
-    S07 -> add page -> duplicate page -> reorder -> S18 PDF all pages
-    happy path clicks: ~6
-    edge: 50+ pages, mixed page sizes, embedded fonts in PDF
+F04 Import PC saves
+    S06 -> + -> Files -> pick saves folder/zip -> slots appear
+    edge: save made by another engine version; PC save token mismatch (Ren'Py 8 "save security")
 
-F05 Remove a photo background (Pro in Canva, free here)
-    S07 -> select image -> S14 BG remover -> processing -> result
-    happy path clicks: 3
-    edge: no subject found, very large image, slow device
+F05 Change engine version / compatibility for one game
+    S01 -> … -> S03 -> pick engine, renderer, performance -> launch
+    edge: wrong engine -> game error screen must offer "try another engine"
 
-F06 Resize a design to another format (Pro in Canva, free here)
-    S07 -> S16 -> pick "Instagram Story" -> new copy opens
-    happy path clicks: 3
-    edge: elements off-canvas after resize, text overflow
-
-F07 Share for view or edit
-    S07 -> S17 -> link on, role -> copy
-    happy path clicks: 3
-    edge: viewer tries to edit, revoked link, two editors at once
-
-F08 Reopen and continue a design
-    S03 recent -> S07 (autosaved state)
-    happy path clicks: 1
-    edge: offline edits, conflicting tabs, deleted upload
+F06 Delete / rename a game
+    S01 -> … -> S03 -> delete (confirm)
 ```
 
 ## Components
 
 | component | variants | states | used on |
 | --- | --- | --- | --- |
-| Button | primary, secondary, ghost, icon, danger | default, hover, focus, disabled, loading | all |
-| Input / number stepper | text, number, unit | default, focus, error, disabled | S02, S04, S13 |
-| Colour picker | swatches, document colours, brand colours, custom (hex/eyedropper) | open, closed | S12, S13, S19 |
-| Font picker | list with preview, search, recent | loading font, selected | S13, S19 |
-| Dropdown / select | | open, closed | many |
-| Slider | | drag, disabled | S14, S18 |
-| Modal / dialog | small, large | open, closing | S02, S16, S17, S18 |
-| Popover | | | S04, S15 |
-| Side panel + tab rail | desktop rail, mobile bottom sheet | collapsed, open | S07–S12 |
-| Card (design / template / folder) | grid, list | hover, selected, loading skeleton | S03, S05, S06 |
-| Canvas element | text, shape, line, image, group, frame | idle, hover, selected, editing, locked | S07 |
-| Selection box | single, multi, group | resize/rotate handles, snapping guides | S07 |
-| Page strip / thumbnails | | active, dragging | S07 |
-| Toast | info, success, error | | all |
-| Context menu | | | S06, S07 |
-| Dropzone | | idle, drag-over, uploading, error | S11, S19 |
-| Empty state | | | S03, S06, S11, S19 |
+| Game card | grid, list | normal, importing (progress), broken | S01 |
+| Icon button (round, glass) | back, share, gear, +, … | default, pressed | all |
+| Chip | "Game", engine version | — | S04, S03 |
+| Action sheet / context menu | — | — | S01, S06, S07 |
+| Confirm dialog | destructive | — | delete, restore |
+| Document picker (system) | zip, folder | — | S02, F04 |
+| Progress bar / toast | — | — | S02 |
+| Save row | with thumbnail, timestamp, slot name | selected | S06, S08 |
+| Toggle / picker / slider rows | — | — | S03, S12 |
+| Player overlay | — | shown, hidden | S04 |
+
+Look and feel (screenshot): dark UI, glassy round buttons, serif display headings. **Do not copy the icon or the anime artwork.** They belong to Spark or its artist.
 
 ## Inferred data model
 
 ```
-User        id, email, name, avatar_url, locale, created_at
-            evidence: S02, S21 · confidence: high
+Game        id, title, folder_path, cover_path?, engine_version (e.g. "8.3"|"7.6"),
+            settings {renderer, performance_mode, scale, ...}, size_bytes, added_at, last_played_at
+            evidence: #3 per-novel engine + settings, S01, S03 · confidence: high (fields: medium)
 
-Design      id, owner_id, folder_id?, title, width, height, unit (px|mm|in),
-            thumbnail_url, created_at, updated_at, deleted_at?
-            evidence: S03 recent grid, S04, S07 · confidence: high
+SaveSlot    game_id, slot_name ("auto-7-LT1", "1-1-LT1"), file_path, thumbnail, saved_at
+            evidence: S00 screenshot "All Saves" rows; Ren'Py save naming · confidence: high
 
-Page        id, design_id, index, background (color | image_ref), width?, height?
-            evidence: S07 page strip, S12 · confidence: high
+Backup      id, game_id, kind (manual|auto), created_at, zip_path, slot_count
+            evidence: #3 manual/automatic backups · confidence: high
 
-Element     id, page_id, parent_group_id?, type (text|shape|line|image|group),
-            x, y, w, h, rotation, opacity, z_index, locked, flip_x, flip_y,
-            props (json: text runs + style | shape path + fill/stroke | image src + crop + filters)
-            evidence: S13, S14, S15, help #1 · confidence: high (exact storage is a guess:
-            most likely one JSON document per design, not rows. Recommend JSON-per-design)
+Persistent  game_id, file_path (Ren'Py "persistent" file)
+            evidence: Ren'Py internals; save editor (#4) · confidence: medium
 
-Upload      id, owner_id, url, mime, width, height, bytes, created_at
-            evidence: S11 · confidence: high
-
-Template    id, title, category, tags[], width, height, design_json, thumbnail_url, published
-            evidence: S05, S08 · confidence: medium
-
-Folder      id, owner_id, name, parent_id?
-            evidence: S06 · confidence: medium
-
-BrandKit    id, owner_id, colors[], fonts {heading, body}, logo_upload_ids[]
-            evidence: S19, source #3 · confidence: medium
-
-ShareLink   id, design_id, role (view|edit), token, enabled, created_at
-            evidence: S17 · confidence: medium
-
-Comment     id, design_id, page_id, element_id?, author_id, body, resolved, created_at
-            evidence: general knowledge · confidence: guess
+Engine      version, python (2|3), bundled (bool)
+            evidence: #3 several engine versions · confidence: high
 ```
 
-Relationships: User 1-n Design, Design 1-n Page, Page 1-n Element, Element (group) 1-n Element, User 1-n Upload, User 1-n Folder, Folder 1-n Design, User 1-1 BrandKit, Design 1-n ShareLink, Design 1-n Comment.
+Relationships: Game 1-n SaveSlot, Game 1-n Backup, Engine 1-n Game.
 
 ## Feature matrix
 
-See `features.csv`. Must: 28, should: 13, could: 6, skip: 5.
+See `features.csv`. Must: 16, should: 10, could: 5, skip: 4.
 
-## Out of scope (cannot or should not be cloned)
+## Out of scope / must not be copied
 
-- **Canva's templates, stock photos, illustrations, fonts and music.** These are licensed content owned by Canva and its contributors. Build your own starter templates and use openly licensed sources instead: Google Fonts, Lucide/Tabler icons, and the Openverse, Unsplash or Pexels official APIs with attribution.
-- **The Canva name, logo, purple brand and UI copy.** `/replica-brand` covers your own identity.
-- Print ordering (a partner deal), the apps marketplace (a partner network), video and animation editing, and AI generation (these need paid model APIs). Revisit them after launch.
-- **Terms.** Using your own Canva account to look at screens is fine as a reference. Do not use it to copy assets or templates.
+- **The name "Spark", the icon, the anime artwork, the screenshots and the App Store text.** Copying these exactly is what would cause problems (trademark and copyright). Our version gets its own name and its own art.
+- **Spark's own code.** We do not decompile or inspect the app. The engine comes from Ren'Py's public open-source code instead.
+- **Games themselves.** The app ships with no games. Users import games they own or that are free to download.
+- **The App Store presence and ratings.** This is a sideloaded app. A public App Store release would also hit Apple rule 2.5.2 (apps may not run downloaded code), which a sideload avoids.
 
 ## Size
 
-Screens 21, flows 8, entities 10.
-Hard parts:
-1. **The canvas editor itself.** Selection, resize and rotate handles, snapping, grouping with nested transforms, undo/redo, and text editing on canvas. Arabic/RTL text shaping is part of this. Use a mature library (Konva or Fabric.js) and do not write it from scratch.
-2. **Faithful export.** PNG, JPG, multi-page PDF with embedded fonts, and SVG must match what the canvas shows.
-3. **Background remover running free.** Use an open segmentation model, either in the browser (WASM/WebGPU) or on your own server, which means compute cost.
-   Also: real-time co-editing (CRDT, Yjs) if it moves from could to should.
+Screens 13, flows 6, entities 5.
 
-Size: **L** (a quarter) for must + should. An **M** slice exists: editor + text/shapes/uploads + pages + PNG/PDF export + 20 templates, with no sharing or brand kit.
+Hard parts:
+1. **Building the Ren'Py engine for iOS as a "player" that loads any game from a folder**, instead of one game baked into the app. This needs Ren'Py's `renpy-build` toolchain (Python, SDL2, ffmpeg, pygame_sdl2) cross-compiled for iOS on a Mac. That is hours of CI and a lot of trial and error.
+2. **Several engine versions.** Ren'Py 7 runs on Python 2 and Ren'Py 8 runs on Python 3, so supporting both means shipping two full runtimes in one app.
+3. **Game compatibility.** Some PC games bundle native modules or desktop-only code, and save files from a PC can carry security tokens that do not match on the phone.
+
+Size: **XL as specified.** Rescoped MVP: the **Ren'Py 8.x engine only**, plus library, zip import, player with touch controls, and save backup/restore/import/delete. That is **L**. Ren'Py 7 support, the save editor and translation come after the MVP works.

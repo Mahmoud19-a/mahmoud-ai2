@@ -1,53 +1,33 @@
 feature,area,priority,original,clone,notes
-Sign up / log in with email or Google,onboarding,must,yes,no,"not needed: local-only app, no accounts"
-Use the editor without an account (local save),onboarding,could,no,yes,our edge: try before signup
-"Home with ""create a design"" and recent designs",home,must,yes,yes,
-Preset sizes (Instagram post/story A4 presentation YouTube thumbnail etc.),home,must,yes,yes,
-Custom size in px / mm / in,home,must,yes,yes,
-Template gallery with search and categories,templates,must,yes,partial,categories yes; no search (13 templates)
-Open a template as a new editable design,templates,must,yes,yes,
-Canvas with zoom / pan / fit,editor,must,yes,yes,
-Add text: heading / subheading / body,editor,must,yes,yes,
-Text formatting: font size colour bold italic underline align spacing list,editor,must,yes,partial,no bullet lists
-Text effects: shadow outline curve,editor,could,yes,partial,shadow and outline yes; curved text no
-Shapes and lines,elements,must,yes,yes,original SVG set
-Icons / stickers library,elements,should,yes,yes,open-licensed icon set (e.g. Lucide / Tabler)
-Stock photos search,elements,should,yes,no,not built (offline app)
-Upload images (drag & drop),uploads,must,yes,yes,
-Select / move / resize / rotate with handles,editor,must,yes,yes,
-Snapping guides and smart spacing,editor,should,yes,yes,
-Multi-select (shift-click / marquee),editor,must,yes,yes,
-Group / ungroup (Ctrl+G),editor,must,yes,yes,
-Layer order: forward / backward / to front / to back,editor,must,yes,yes,
-Layers panel,editor,should,yes,yes,
-Align elements to page / to each other,editor,must,yes,yes,
-Lock element,editor,should,yes,yes,
-Transparency,editor,must,yes,yes,
-Image crop / flip,editor,must,yes,yes,
-Image filters and adjustments (brightness contrast saturation),editor,should,yes,yes,
-Background colour / image for page,editor,must,yes,yes,
-Multiple pages per design (add / duplicate / reorder / delete),editor,must,yes,yes,
-Undo / redo,editor,must,yes,yes,
-Keyboard shortcuts (copy paste duplicate delete nudge),editor,must,yes,yes,
-Autosave,editor,must,yes,yes,
-Rename design,editor,must,yes,yes,
-Download PNG,export,must,yes,yes,
-Download JPG,export,must,yes,yes,
-Download PDF (multi-page),export,must,yes,yes,
-Download SVG,export,should,pro,no,not built
-Transparent background PNG,export,should,pro,yes,free in ours
-Background remover,ai,should,pro,no,not built yet: needs an on-device model
-Resize design to another format (Magic Resize),editor,should,pro,yes,free in ours
-Brand kit (saved colours fonts logos),brand,should,pro,yes,free in ours
-Folders / projects,home,should,yes,no,not built
-Share link (view only / can edit),sharing,should,yes,no,needs a backend; share sheet export instead
-Real-time co-editing,sharing,could,yes,no,needs a backend
-Comments on a design,sharing,could,yes,no,needs a backend
-Presentation mode,present,could,yes,yes,
-Charts and tables,elements,could,yes,no,not built
-Animation and video editing,video,could,yes,skip,out of first version: different product scope
-AI text / image generation,ai,could,pro,skip,needs paid model APIs; revisit after launch
-Print ordering,print,could,yes,skip,partner deal with printers
-Canva's template and stock library,content,could,yes,skip,licensed content owned by Canva and contributors
-Apps marketplace,integrations,could,yes,skip,their partner network
-Arabic / RTL text support,editor,must,yes,yes,important for our audience
+Library of imported games (grid with covers),library,must,yes,no,
+Empty state with how-to-import guide,library,must,yes,no,
+Import game from Files as .zip,import,must,yes,no,
+Import game as an unzipped folder,import,should,yes,no,guess
+Validate the import is a Ren'Py game (game/ folder; .rpy/.rpyc/.rpa),import,must,yes,no,
+Import progress and error messages (not Ren'Py / no space),import,must,yes,no,
+Run Ren'Py 8.x games full-screen,player,must,yes,no,needs renpy-build for iOS
+Run Ren'Py 7.x (Python 2) games,player,should,yes,no,second runtime; after MVP
+Choose engine version per game,player,should,yes,no,
+Per-game performance / compatibility settings (renderer / scaling),player,should,yes,no,
+Touch: tap to advance and swipe to roll back,player,must,yes,no,Ren'Py has built-in touch support
+On-screen overlay: back / menu / settings,player,must,yes,no,seen in screenshot
+Keyboard for text-input screens,player,must,yes,no,
+Pause and resume when app goes to background,player,must,yes,no,
+Per-game save list with thumbnails,saves,must,yes,no,seen in screenshot
+Manual save backup,saves,must,yes,no,
+Automatic backup before launch,saves,should,yes,no,
+Restore a backup,saves,must,yes,no,
+Import saves from PC / other installs,saves,must,yes,no,
+Export saves (share sheet),saves,should,yes,no,guess
+Delete saves,saves,must,yes,no,
+Save editor (edit variables / persistent),saves,could,yes,no,guess from search result
+Rename game / set cover / delete game,library,must,yes,no,
+Search and sort library,library,could,yes,no,guess
+App languages EN / RU / KO / ZH / JA,app,could,yes,no,ours: Arabic + English first
+Translation tool for games,tools,could,yes,no,guess (translate icon)
+Guide / help screens,app,should,yes,no,book icon
+App settings,app,should,yes,no,
+Unlock via in-app purchase,app,could,yes,skip,our version is free
+Spark name / icon / artwork / store text,brand,could,yes,skip,owned by Spark and its artist: make our own
+Bundled games,content,could,no,skip,users import games they own
+App Store distribution,distribution,could,yes,skip,sideload with SideStore; App Store rule 2.5.2 blocks downloaded code
