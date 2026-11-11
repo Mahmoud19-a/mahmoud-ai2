@@ -116,7 +116,7 @@ Relationships: Game 1-n SaveSlot, Game 1-n Backup, Engine 1-n Game.
 
 ## Feature matrix
 
-See `features.csv`. Must: 16, should: 10, could: 5, skip: 4.
+See `features.csv`. Must: 16, should: 8, could: 4, skip: 4.
 
 ## Out of scope / must not be copied
 
