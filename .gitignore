@@ -1,0 +1,5 @@
+build/
+out/
+ios/*.xcodeproj/
+.DS_Store
+node_modules/

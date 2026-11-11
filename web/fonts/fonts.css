@@ -1,0 +1,248 @@
+/* cairo-arabic-400-normal */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./cairo-arabic-400-normal.woff2) format('woff2');
+}
+/* cairo-latin-400-normal */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./cairo-latin-400-normal.woff2) format('woff2');
+}
+/* cairo-arabic-700-normal */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./cairo-arabic-700-normal.woff2) format('woff2');
+}
+/* cairo-latin-700-normal */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./cairo-latin-700-normal.woff2) format('woff2');
+}
+/* tajawal-arabic-400-normal */
+@font-face {
+  font-family: 'Tajawal';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./tajawal-arabic-400-normal.woff2) format('woff2');
+}
+/* tajawal-latin-400-normal */
+@font-face {
+  font-family: 'Tajawal';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./tajawal-latin-400-normal.woff2) format('woff2');
+}
+/* tajawal-arabic-700-normal */
+@font-face {
+  font-family: 'Tajawal';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./tajawal-arabic-700-normal.woff2) format('woff2');
+}
+/* tajawal-latin-700-normal */
+@font-face {
+  font-family: 'Tajawal';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./tajawal-latin-700-normal.woff2) format('woff2');
+}
+/* amiri-arabic-400-normal */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./amiri-arabic-400-normal.woff2) format('woff2');
+}
+/* amiri-latin-400-normal */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./amiri-latin-400-normal.woff2) format('woff2');
+}
+/* amiri-arabic-700-normal */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./amiri-arabic-700-normal.woff2) format('woff2');
+}
+/* amiri-latin-700-normal */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./amiri-latin-700-normal.woff2) format('woff2');
+}
+/* lalezar-arabic-400-normal */
+@font-face {
+  font-family: 'Lalezar';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./lalezar-arabic-400-normal.woff2) format('woff2');
+}
+/* lalezar-latin-400-normal */
+@font-face {
+  font-family: 'Lalezar';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./lalezar-latin-400-normal.woff2) format('woff2');
+}
+/* reem-kufi-arabic-400-normal */
+@font-face {
+  font-family: 'Reem Kufi';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./reem-kufi-arabic-400-normal.woff2) format('woff2');
+}
+/* reem-kufi-latin-400-normal */
+@font-face {
+  font-family: 'Reem Kufi';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./reem-kufi-latin-400-normal.woff2) format('woff2');
+}
+/* reem-kufi-arabic-700-normal */
+@font-face {
+  font-family: 'Reem Kufi';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./reem-kufi-arabic-700-normal.woff2) format('woff2');
+}
+/* reem-kufi-latin-700-normal */
+@font-face {
+  font-family: 'Reem Kufi';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./reem-kufi-latin-700-normal.woff2) format('woff2');
+}
+/* changa-arabic-400-normal */
+@font-face {
+  font-family: 'Changa';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./changa-arabic-400-normal.woff2) format('woff2');
+}
+/* changa-latin-400-normal */
+@font-face {
+  font-family: 'Changa';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./changa-latin-400-normal.woff2) format('woff2');
+}
+/* changa-arabic-700-normal */
+@font-face {
+  font-family: 'Changa';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./changa-arabic-700-normal.woff2) format('woff2');
+}
+/* changa-latin-700-normal */
+@font-face {
+  font-family: 'Changa';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./changa-latin-700-normal.woff2) format('woff2');
+}
+/* montserrat-latin-400-normal */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./montserrat-latin-400-normal.woff2) format('woff2');
+}
+/* montserrat-latin-700-normal */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./montserrat-latin-700-normal.woff2) format('woff2');
+}
+/* playfair-display-latin-400-normal */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./playfair-display-latin-400-normal.woff2) format('woff2');
+}
+/* playfair-display-latin-700-normal */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./playfair-display-latin-700-normal.woff2) format('woff2');
+}
+/* pacifico-latin-400-normal */
+@font-face {
+  font-family: 'Pacifico';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./pacifico-latin-400-normal.woff2) format('woff2');
+}
+/* bebas-neue-latin-400-normal */
+@font-face {
+  font-family: 'Bebas Neue';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./bebas-neue-latin-400-normal.woff2) format('woff2');
+}
+/* lobster-latin-400-normal */
+@font-face {
+  font-family: 'Lobster';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./lobster-latin-400-normal.woff2) format('woff2');
+}
+/* oswald-latin-400-normal */
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(./oswald-latin-400-normal.woff2) format('woff2');
+}
+/* oswald-latin-700-normal */
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./oswald-latin-700-normal.woff2) format('woff2');
+}
