@@ -1,0 +1,53 @@
+feature,area,priority,original,clone,notes
+Sign up / log in with email or Google,onboarding,must,yes,no,
+Use the editor without an account (local save),onboarding,could,no,no,our edge: try before signup
+Home with "create a design" and recent designs,home,must,yes,no,
+Preset sizes (Instagram post/story A4 presentation YouTube thumbnail etc.),home,must,yes,no,
+Custom size in px / mm / in,home,must,yes,no,
+Template gallery with search and categories,templates,must,yes,no,our own templates only (start with ~50)
+Open a template as a new editable design,templates,must,yes,no,
+Canvas with zoom / pan / fit,editor,must,yes,no,
+Add text: heading / subheading / body,editor,must,yes,no,
+Text formatting: font size colour bold italic underline align spacing list,editor,must,yes,no,open-licensed fonts only (Google Fonts)
+Text effects: shadow outline curve,editor,could,yes,no,
+Shapes and lines,elements,must,yes,no,original SVG set
+Icons / stickers library,elements,should,yes,no,open-licensed icon set (e.g. Lucide / Tabler)
+Stock photos search,elements,should,yes,no,via Openverse / Unsplash / Pexels official APIs with attribution
+Upload images (drag & drop),uploads,must,yes,no,
+Select / move / resize / rotate with handles,editor,must,yes,no,
+Snapping guides and smart spacing,editor,should,yes,no,
+Multi-select (shift-click / marquee),editor,must,yes,no,
+Group / ungroup (Ctrl+G),editor,must,yes,no,
+Layer order: forward / backward / to front / to back,editor,must,yes,no,
+Layers panel,editor,should,yes,no,
+Align elements to page / to each other,editor,must,yes,no,
+Lock element,editor,should,yes,no,
+Transparency,editor,must,yes,no,
+Image crop / flip,editor,must,yes,no,
+Image filters and adjustments (brightness contrast saturation),editor,should,yes,no,
+Background colour / image for page,editor,must,yes,no,
+Multiple pages per design (add / duplicate / reorder / delete),editor,must,yes,no,
+Undo / redo,editor,must,yes,no,
+Keyboard shortcuts (copy paste duplicate delete nudge),editor,must,yes,no,
+Autosave,editor,must,yes,no,
+Rename design,editor,must,yes,no,
+Download PNG,export,must,yes,no,
+Download JPG,export,must,yes,no,
+Download PDF (multi-page),export,must,yes,no,
+Download SVG,export,should,pro,no,free in ours
+Transparent background PNG,export,should,pro,no,free in ours
+Background remover,ai,should,pro,no,free in ours: run an open model in the browser or own server
+Resize design to another format (Magic Resize),editor,should,pro,no,free in ours
+Brand kit (saved colours fonts logos),brand,should,pro,no,free in ours
+Folders / projects,home,should,yes,no,
+Share link (view only / can edit),sharing,should,yes,no,
+Real-time co-editing,sharing,could,yes,no,hard: CRDT (Yjs)
+Comments on a design,sharing,could,yes,no,
+Presentation mode,present,could,yes,no,
+Charts and tables,elements,could,yes,no,
+Animation and video editing,video,could,yes,skip,out of first version: different product scope
+AI text / image generation,ai,could,pro,skip,needs paid model APIs; revisit after launch
+Print ordering,print,could,yes,skip,partner deal with printers
+Canva's template and stock library,content,could,yes,skip,licensed content owned by Canva and contributors
+Apps marketplace,integrations,could,yes,skip,their partner network
+Arabic / RTL text support,editor,must,yes,no,important for our audience
