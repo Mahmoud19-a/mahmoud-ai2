@@ -155,7 +155,7 @@
   .modal-card h2{color:var(--gold-soft); font-size:18px; margin:0 0 6px;}
   .modal-card p{color:var(--ink-dim); font-size:13px; line-height:1.7; margin:0 0 14px;}
   .modal-card .key-note{font-size:11px; margin-top:12px;}
-  #apiKeyInput{
+  #apiKeyInput, #baseUrlInput{
     width:100%;
     background:var(--bg-deep);
     border:1px solid var(--line);
@@ -167,7 +167,7 @@
     direction:ltr;
     margin-bottom:12px;
   }
-  #apiKeyInput:focus{outline:none; border-color:var(--gold);}
+  #apiKeyInput:focus, #baseUrlInput:focus{outline:none; border-color:var(--gold);}
   #providerSelect{
     width:100%;
     background:var(--bg-deep);
@@ -431,7 +431,9 @@
     <select id="providerSelect">
       <option value="anthropic" selected>Anthropic مباشر (sk-ant-...)</option>
       <option value="openrouter">OpenRouter (sk-or-v1-...)</option>
+      <option value="freellmapi">FreeLLMAPI — مجاني (freellmapi-...)</option>
     </select>
+    <input type="url" id="baseUrlInput" placeholder="http://localhost:3001" style="display:none">
     <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
     <select id="modelSelect">
       <option value="claude-sonnet-5" selected>Sonnet 5 — متوازن وسريع</option>
@@ -442,7 +444,7 @@
       <option value="">جاري تحميل الأصوات...</option>
     </select>
     <button id="saveKeyBtn">حفظ</button>
-    <p class="key-note">المفتاح بينخزن بس بالجلسة الحالية على جهازك، ما بينبعت لأي مكان غير Anthropic مباشرة.</p>
+    <p class="key-note">المفتاح بينخزن بس بالجلسة الحالية على جهازك، وبينبعت بس للمزوّد اللي اخترته. مع FreeLLMAPI الموديل بيختاره الراوتر تلقائياً (auto).</p>
     <button class="modal-close" id="closeSettingsBtn">إغلاق</button>
   </div>
 </div>
@@ -485,16 +487,23 @@ const settingsBtn = document.getElementById('settingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const providerSelect = document.getElementById('providerSelect');
 const apiKeyInput = document.getElementById('apiKeyInput');
+const baseUrlInput = document.getElementById('baseUrlInput');
 let selectedProvider = providerSelect.value;
+let freeLlmBaseUrl = 'http://localhost:3001';
 
-providerSelect.addEventListener('change', () => {
-  apiKeyInput.placeholder = providerSelect.value === 'openrouter' ? 'sk-or-v1-...' : 'sk-ant-...';
-});
+function syncProviderFields(){
+  const p = providerSelect.value;
+  apiKeyInput.placeholder = p === 'openrouter' ? 'sk-or-v1-...' : p === 'freellmapi' ? 'freellmapi-...' : 'sk-ant-...';
+  baseUrlInput.style.display = p === 'freellmapi' ? '' : 'none';
+  modelSelect.style.display = p === 'freellmapi' ? 'none' : '';
+}
+providerSelect.addEventListener('change', syncProviderFields);
 const saveKeyBtn = document.getElementById('saveKeyBtn');
 const modelSelect = document.getElementById('modelSelect');
 const voiceSelect = document.getElementById('voiceSelect');
 let selectedModel = modelSelect.value;
 let selectedVoiceURI = '';
+syncProviderFields();
 
 function populateVoices(){
   if (!('speechSynthesis' in window)) return;
@@ -535,6 +544,7 @@ saveKeyBtn.addEventListener('click', () => {
   if (!val) return;
   apiKey = val;
   selectedProvider = providerSelect.value;
+  freeLlmBaseUrl = (baseUrlInput.value.trim() || 'http://localhost:3001').replace(/\/+$/, '').replace(/\/v1$/, '');
   selectedModel = modelSelect.value;
   selectedVoiceURI = voiceSelect.value;
   closeSettings();
@@ -776,7 +786,7 @@ async function sendMessage(text) {
     displayText = (text ? text + '\n' : '') + (attachment.kind === 'image' ? '📎 ' + attachment.name : '📄 ' + attachment.name);
     if (attachment.kind === 'text') {
       userContent = (text ? text + '\n\n' : '') + '📎 محتوى الملف المرفق (' + attachment.name + '):\n' + attachment.text;
-    } else if (selectedProvider === 'openrouter') {
+    } else if (selectedProvider === 'openrouter' || selectedProvider === 'freellmapi') {
       userContent = [
         { type: 'text', text: text || 'شو رأيك بهاي الصورة؟' },
         { type: 'image_url', image_url: { url: 'data:' + attachment.mediaType + ';base64,' + attachment.base64 } }
@@ -803,7 +813,24 @@ async function sendMessage(text) {
   try {
     let response, replyText;
 
-    if (selectedProvider === 'openrouter') {
+    if (selectedProvider === 'freellmapi') {
+      response = await fetch(freeLlmBaseUrl + "/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: "auto",
+          max_tokens: 1000,
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history]
+        })
+      });
+      const data = await response.json();
+      removeTypingIndicator();
+      if (data.error) throw new Error(data.error.message || 'FreeLLMAPI error');
+      replyText = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || 'ما قدرت أجاوب هلأ، جرب مرة ثانية.';
+    } else if (selectedProvider === 'openrouter') {
       response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
