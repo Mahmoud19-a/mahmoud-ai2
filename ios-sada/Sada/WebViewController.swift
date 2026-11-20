@@ -1,5 +1,6 @@
 import UIKit
 import WebKit
+import UserNotifications
 
 /// Hosts the Sada app (bundled `social/` folder) in a WKWebView and provides two
 /// native bridges: `store` (key-value files), `share` (export) and `net` (HTTPS POST to the AI API, no CORS).
@@ -8,6 +9,7 @@ final class WebViewController: UIViewController, WKUIDelegate, WKNavigationDeleg
     private let storeHandler = StoreHandler()
     private let shareHandler = ShareHandler()
     private let netHandler = NetHandler()
+    private let notifyHandler = NotifyHandler()
     private static let paper = UIColor.black
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -18,6 +20,7 @@ final class WebViewController: UIViewController, WKUIDelegate, WKNavigationDeleg
         controller.add(shareHandler, name: "share")
         controller.addScriptMessageHandler(storeHandler, contentWorld: .page, name: "store")
         controller.addScriptMessageHandler(netHandler, contentWorld: .page, name: "net")
+        controller.add(notifyHandler, name: "notify")
         config.userContentController = controller
         config.allowsInlineMediaPlayback = true
 
@@ -41,6 +44,17 @@ final class WebViewController: UIViewController, WKUIDelegate, WKNavigationDeleg
         super.viewDidLoad()
         guard let dir = Bundle.main.url(forResource: "social", withExtension: nil) else { return }
         webView.loadFileURL(dir.appendingPathComponent("index.html"), allowingReadAccessTo: dir)
+
+        // Ask once for permission to show likes / comments / follows as iPhone notifications.
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+        // Tell the page when the app goes to the background / comes back, so it can schedule notifications.
+        let nc = NotificationCenter.default
+        nc.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.webView.evaluateJavaScript("window.__onBackground && window.__onBackground()", completionHandler: nil)
+        }
+        nc.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.webView.evaluateJavaScript("window.__onForeground && window.__onForeground()", completionHandler: nil)
+        }
     }
 
     // No page zoom: the editor has its own pinch-to-zoom.
@@ -189,5 +203,34 @@ final class NetHandler: NSObject, WKScriptMessageHandlerWithReply {
             let text = data.flatMap { String(data: $0, encoding: .utf8) } ?? (error?.localizedDescription ?? "")
             DispatchQueue.main.async { replyHandler(["status": status, "text": text], nil) }
         }.resume()
+    }
+}
+
+/// Schedules local notifications for reactions that are due while the app is closed,
+/// and clears them (and the badge) when the app is opened.
+final class NotifyHandler: NSObject, WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard let body = message.body as? [String: Any], let op = body["op"] as? String else { return }
+        let center = UNUserNotificationCenter.current()
+        if op == "clear" {
+            center.removeAllPendingNotificationRequests()
+            center.removeAllDeliveredNotifications()
+            if #available(iOS 16.0, *) { center.setBadgeCount(0, withCompletionHandler: nil) }
+            else { UIApplication.shared.applicationIconBadgeNumber = 0 }
+            return
+        }
+        guard op == "schedule", let items = body["items"] as? [[String: Any]] else { return }
+        center.removeAllPendingNotificationRequests()
+        for (index, item) in items.prefix(60).enumerated() {
+            guard let id = item["id"] as? String, let text = item["body"] as? String else { continue }
+            let delay = max(1.0, (item["delay"] as? NSNumber)?.doubleValue ?? 1.0)
+            let content = UNMutableNotificationContent()
+            content.title = item["title"] as? String ?? "Sada"
+            content.body = text
+            content.sound = .default
+            content.badge = NSNumber(value: index + 1)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
+            center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger), withCompletionHandler: nil)
+        }
     }
 }

@@ -48,7 +48,7 @@ const Engine = {
   async reactToMyPost(post) {
     const fans = S.chars.filter((c) => S.followsMe.includes(c.id));
     const others = S.chars.filter((c) => !S.followsMe.includes(c.id));
-    const chosen = [...shuffle(fans).slice(0, 5), ...shuffle(others).slice(0, 3)].slice(0, Math.min(7, S.chars.length));
+    const chosen = [...shuffle(fans).slice(0, 6), ...shuffle(others).slice(0, 4)].slice(0, Math.min(10, S.chars.length));
     const text = `The human ${meDesc()} just posted:
 """${post.text || '(no text, only a photo)'}"""${post.image ? '\nThe attached image is the photo in the post. React to what is actually in it.' : ''}
 
@@ -61,16 +61,18 @@ Return JSON: {"reactions":[{"handle":"handle","like":true,"comment":"text or emp
     let content = text;
     if (post.image) { const small = await shrinkDataURL(post.image); if (small) content = [{ type: 'text', text }, { type: 'image_url', image_url: { url: small } }]; }
     const j = await callJSON(content);
+    // the first reactions come fast, the rest trickle in over the next ~20 minutes (and arrive as iPhone notifications)
+    let nl = 0, nc = 0;
     (j.reactions || []).forEach((r) => {
       const c = charByHandle(r.handle); if (!c) return;
-      if (r.like) S.queue.push({ at: sec(3, 70), kind: 'like', post: post.id, who: c.id });
-      if (r.comment && String(r.comment).trim()) S.queue.push({ at: sec(8, 150), kind: 'comment', post: post.id, who: c.id, text: String(r.comment).trim() });
+      if (r.like) S.queue.push({ at: nl++ < 3 ? sec(3, 45) : sec(45, 900), kind: 'like', post: post.id, who: c.id });
+      if (r.comment && String(r.comment).trim()) S.queue.push({ at: nc++ < 2 ? sec(10, 75) : sec(75, 1200), kind: 'comment', post: post.id, who: c.id, text: String(r.comment).trim() });
     });
     // a couple of new followers now and then
     shuffle(others).slice(0, randi(0, 2)).forEach((c) => {
       if (Math.random() < 0.6) {
-        S.queue.push({ at: sec(20, 240), kind: 'follow', who: c.id });
-        if (Math.random() < 0.35) S.queue.push({ at: sec(120, 600), kind: 'dmstart', who: c.id });
+        S.queue.push({ at: sec(30, 900), kind: 'follow', who: c.id });
+        if (Math.random() < 0.35) S.queue.push({ at: sec(300, 1500), kind: 'dmstart', who: c.id });
       }
     });
     save();
@@ -113,7 +115,8 @@ ${authors.map(persona).join('\n')}
 Posts can be about their day, their interests, an opinion, something funny, a question to followers. Make them feel alive and different.
 ${myLast.length ? `Sometimes (not always) a character may mention the human @${S.me.handle}, whose recent posts were: ${myLast.map((x) => '"' + x.slice(0, 120) + '"').join(', ')}.` : ''}
 Each post may get 0–2 short comments from OTHER characters, chosen from: ${S.chars.map((c) => '@' + c.handle).join(', ')}.
-If a photo fits the post, add "image": a short English description of the photo (scenery, food, objects, places; no close-up faces). Otherwise "image": "".
+About 70% of posts should have a photo, like on Instagram. For those add "image": a short English description of a candid iPhone photo the character took (their food, room, view, pet, outfit, a selfie, a place). Otherwise "image": "".
+Captions should be short and natural like real Instagram captions; text-only posts can be longer thoughts.
 Return JSON: {"posts":[{"handle":"...","text":"...","image":"...","comments":[{"handle":"...","text":"..."}]}]}`;
     const j = await callJSON(text, 1400);
     const now = Date.now();

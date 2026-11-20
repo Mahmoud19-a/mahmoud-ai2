@@ -13,45 +13,67 @@ function freshState() {
   return {
     me: { name: '', handle: '', bio: '', interests: '', avatar: null, emoji: '🙂' },
     settings: { apiKey: '', model: DEFAULT_MODEL, charImages: true, lang: 'en' },
-    chars, followsByMe: chars.slice(0, 9).map((c) => c.id), followsMe: shuffle(chars).slice(0, 2).map((c) => c.id),
+    chars, followsByMe: chars.slice(0, 16).map((c) => c.id), followsMe: shuffle(chars).slice(0, 3).map((c) => c.id), deletedSeeds: [],
     posts: [], notifs: [], dms: {}, dmRead: {}, queue: [], lastFeedGen: 0, onboarded: false,
   };
 }
 
 /* ---------- small renderers ---------- */
 const hashN = (s) => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+function avatarURL(c) {
+  const prompt = c.avatarPrompt || `candid instagram profile picture of a real person, ${c.name}, ${c.bio}, natural light, iphone photo`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=256&height=256&nologo=true&seed=${hashN(c.id) % 100000}`;
+}
 function avatar(id, size = 42) {
   const st = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.5)}px`;
   if (id === 'me') {
     return S.me.avatar ? `<span class="av" style="${st}"><img src="${S.me.avatar}" alt=""></span>`
       : `<span class="av" style="${st};background:#14B8A6">${esc(S.me.emoji || '🙂')}</span>`;
   }
-  const c = charById(id) || { emoji: '❔', color: '#999' };
-  return `<span class="av" style="${st};background:${esc(c.color)}">${esc(c.emoji)}</span>`;
+  const c = charById(id) || { id: '?', emoji: '❔', color: '#999', name: '?', bio: '' };
+  const img = S.settings.charImages && c.id !== '?' ? `<img src="${avatarURL(c)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  return `<span class="av" style="${st};background:${esc(c.color)}">${esc(c.emoji)}${img}</span>`;
 }
 const nameOf = (id) => (id === 'me' ? S.me.name || t('you') : (charById(id) || { name: '?' }).name);
 const handleOf = (id) => (id === 'me' ? S.me.handle : (charById(id) || { handle: '?' }).handle);
 const fakeFollowers = (c) => 120 + (hashN(c.handle) % 4800) + (S.followsByMe.includes(c.id) ? 1 : 0);
-function charImg(p) {
-  if (!p.imgPrompt || !S.settings.charImages) return '';
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(p.imgPrompt)}?width=768&height=768&nologo=true&seed=${hashN(p.id) % 100000}`;
-  return `<img class="pimg" src="${url}" alt="" loading="lazy" onerror="this.remove()">`;
-}
+const imgURL = (p, w = 1024) => `https://image.pollinations.ai/prompt/${encodeURIComponent(p.imgPrompt)}?width=${w}&height=${w}&nologo=true&seed=${hashN(p.id) % 100000}`;
+const hasPhoto = (p) => !!(p.image || (p.imgPrompt && S.settings.charImages));
+const photoSrc = (p, w) => p.image || imgURL(p, w);
+const GRADS = [['#1e3a8a', '#9333ea'], ['#0f766e', '#22d3ee'], ['#9a3412', '#f59e0b'], ['#831843', '#f43f5e'], ['#14532d', '#84cc16'], ['#312e81', '#ec4899']];
 function postCard(p, detail = false) {
-  const liked = p.likedByMe, n = p.comments.length;
-  return `<article class="post" ${detail ? '' : `data-act="post" data-id="${p.id}"`}>
-    <button data-act="${p.author === 'me' ? 'tab' : 'char'}" data-v="profile" data-id="${p.author}">${avatar(p.author)}</button>
-    <div class="body">
-      <div class="who"><b>${esc(nameOf(p.author))}</b><small dir="ltr">@${esc(handleOf(p.author))}</small><small>· ${ago(p.at)}</small></div>
-      ${p.text ? `<div class="text">${esc(p.text)}</div>` : ''}
-      ${p.image ? `<img class="pimg" src="${p.image}" alt="">` : charImg(p)}
-      <div class="actions">
-        <button data-act="like" data-id="${p.id}" class="${liked ? 'liked' : ''}">${icon('heart', 19)}<span>${p.likes}</span></button>
-        <button data-act="post" data-id="${p.id}">${icon('message-circle', 19)}<span>${n}</span></button>
-        ${Engine.typingOn(p.id) ? `<span class="typing">… ${t('typing')}</span>` : ''}
-        ${detail && p.author === 'me' ? `<span class="spacer"></span><button data-act="delPost" data-id="${p.id}">${icon('trash-2', 18)}</button>` : ''}
-      </div>
-    </div></article>`;
+  const liked = p.likedByMe, n = p.comments.length, who = p.author;
+  const photo = hasPhoto(p);
+  const g = GRADS[hashN(p.id) % GRADS.length];
+  const media = photo
+    ? `<img class="ig-img" src="${photoSrc(p)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;ig-text&quot; style=&quot;background:linear-gradient(135deg,${g[0]},${g[1]})&quot;>${esc(p.text).replace(/'/g, '&#39;').slice(0, 280)}</div>'">`
+    : `<div class="ig-text" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${esc(p.text)}</div>`;
+  const liker = p.likers.length ? charById(p.likers[p.likers.length - 1]) : null;
+  const likesLine = p.likes ? (liker && p.likes > 1 ? `Liked by <b>${esc(liker.handle)}</b> and <b>${p.likes - 1}</b> others` : `<b>${p.likes}</b> ${t('likes')}`) : '';
+  const preview = detail ? [] : p.comments.slice().sort((a, b) => b.at - a.at).slice(0, 2).reverse();
+  return `<article class="ig" ${detail ? '' : `data-act="post" data-id="${p.id}"`}>
+    <header class="ig-h"><button class="row" data-act="${who === 'me' ? 'tab' : 'char'}" data-v="profile" data-id="${who}">${avatar(who, 34)}<b dir="ltr">${esc(handleOf(who))}</b></button>
+      <small class="muted">${ago(p.at)}</small><span class="spacer"></span>
+      ${detail && who === 'me' ? `<button class="ib" data-act="delPost" data-id="${p.id}">${icon('trash-2', 18)}</button>` : ''}</header>
+    <div class="ig-m">${media}</div>
+    <div class="ig-a">
+      <button data-act="like" data-id="${p.id}" class="${liked ? 'liked' : ''}">${icon('heart', 25)}</button>
+      <button data-act="post" data-id="${p.id}">${icon('message-circle', 25)}</button>
+      ${Engine.typingOn(p.id) ? `<span class="typing">${t('typing')}</span>` : ''}
+    </div>
+    ${likesLine ? `<div class="ig-l">${likesLine}</div>` : ''}
+    ${photo && p.text ? `<div class="ig-c"><b dir="ltr">${esc(handleOf(who))}</b> ${esc(p.text)}</div>` : ''}
+    ${!detail && n > 2 ? `<button class="ig-more" data-act="post" data-id="${p.id}">View all ${n} comments</button>` : ''}
+    ${preview.map((c) => `<div class="ig-c small"><b dir="ltr">${esc(handleOf(c.author))}</b> ${esc(c.text)}</div>`).join('')}
+    <div class="ig-t">${ago(p.at)}</div></article>`;
+}
+function postGrid(posts) {
+  if (!posts.length) return `<div class="empty">${t('noPosts')}</div>`;
+  return `<div class="grid">${posts.map((p) => {
+    const g = GRADS[hashN(p.id) % GRADS.length];
+    return hasPhoto(p) ? `<button class="cell" data-act="post" data-id="${p.id}"><img src="${photoSrc(p, 512)}" alt="" loading="lazy" onerror="this.remove()"></button>`
+      : `<button class="cell txt" data-act="post" data-id="${p.id}" style="background:linear-gradient(135deg,${g[0]},${g[1]})"><span>${esc(p.text.slice(0, 90))}</span></button>`;
+  }).join('')}</div>`;
 }
 
 /* ---------- views ---------- */
@@ -106,14 +128,18 @@ V.post = ({ id }) => {
     html: postCard(p, true) + `<div class="comments">${roots.map((r) => cm(r) + p.comments.filter((c) => c.parent === r.id).sort((a, b) => a.at - b.at).map((c) => cm(c, true)).join('')).join('')}</div>`,
   };
 };
-V.explore = () => ({
-  title: t('explore'),
-  html: `<div style="padding:12px 14px"><button class="btn accent" style="width:100%" data-act="go" data-v="createChar">${icon('user-plus', 18)}${t('createChar')}</button></div>
-    <div class="section-title">${t('allChars')}</div>
-    ${S.chars.map((c) => `<div class="list-row"><button data-act="char" data-id="${c.id}">${avatar(c.id, 46)}</button>
-      <button class="body" data-act="char" data-id="${c.id}" style="text-align:start"><b>${esc(c.name)}</b> <small class="muted" dir="ltr" style="display:inline">@${esc(c.handle)}</small><span class="muted">${esc(c.bio)}</span></button>
-      ${followBtn(c)}</div>`).join('')}`,
-});
+V.explore = () => {
+  const photos = S.posts.filter((p) => p.author !== 'me' && hasPhoto(p)).sort((a, b) => b.at - a.at).slice(0, 30);
+  return {
+    title: t('explore'),
+    html: `<div style="padding:10px 14px"><input class="field" id="search" data-keep="search" type="search" placeholder="Search" autocapitalize="off" autocorrect="off"></div>
+      <div id="charList">${S.chars.map((c) => `<div class="list-row" data-q="${esc((c.name + ' ' + c.handle + ' ' + c.bio).toLowerCase())}"><button data-act="char" data-id="${c.id}">${avatar(c.id, 46)}</button>
+        <button class="body" data-act="char" data-id="${c.id}" style="text-align:start"><b dir="ltr">${esc(c.handle)}</b><span class="muted">${esc(c.name)} · ${esc(c.bio)}</span></button>
+        ${followBtn(c)}</div>`).join('')}</div>
+      <div style="padding:12px 14px"><button class="btn accent" style="width:100%" data-act="go" data-v="createChar">${icon('user-plus', 18)}${t('createChar')}</button></div>
+      ${photos.length ? `<div class="section-title">Discover</div>${postGrid(photos)}` : ''}`,
+  };
+};
 const followBtn = (c) => S.followsByMe.includes(c.id)
   ? `<button class="btn small" data-act="follow" data-id="${c.id}">${t('following')}</button>`
   : `<button class="btn small primary" data-act="follow" data-id="${c.id}">${t('follow')}</button>`;
@@ -127,7 +153,7 @@ V.char = ({ id }) => {
       <div class="stats"><span><b>${posts.length}</b> ${t('posts')}</span><span><b>${fakeFollowers(c)}</b> ${t('followers')}</span></div>
       <div class="row">${followBtn(c)}<button class="btn small" data-act="dm" data-id="${id}">${icon('mail', 16)}${t('message')}</button><span class="spacer"></span>
       <button class="ib" data-act="delChar" data-id="${id}" aria-label="${t('deleteChar')}">${icon('trash-2', 18)}</button></div></div>
-      ${posts.length ? posts.map((p) => postCard(p)).join('') : `<div class="empty">${t('noPosts')}</div>`}`,
+      ${postGrid(posts)}`,
   };
 };
 const NOTIF_TEXT = { like: 'nLiked', comment: 'nCommented', reply: 'nReplied', follow: 'nFollowed', dm: 'nMessaged' };
@@ -147,7 +173,7 @@ V.profile = () => {
       <div class="bio">${esc(S.me.bio)}</div>
       <div class="stats"><span><b>${posts.length}</b> ${t('posts')}</span><span><b>${S.followsMe.length}</b> ${t('followers')}</span><span><b>${S.followsByMe.length}</b> ${t('followingCount')}</span></div>
       <button class="btn small" data-act="go" data-v="editProfile">${t('editProfile')}</button></div>
-      ${posts.length ? posts.map((p) => postCard(p)).join('') : `<div class="empty">${t('noPosts')}</div>`}`,
+      ${postGrid(posts)}`,
   };
 };
 const dmLast = (cid) => { const m = S.dms[cid] || []; return m[m.length - 1]; };
@@ -318,7 +344,7 @@ document.addEventListener('click', async (e) => {
     case 'pickPhoto': App.draft.text = val('draft'); pickPhoto((src) => { App.draft.image = src; render(true); }); break;
     case 'rmPhoto': App.draft.text = val('draft'); App.draft.image = null; render(true); break;
     case 'publish': publish(); break;
-    case 'refresh': refreshFeed(3); break;
+    case 'refresh': refreshFeed(4); break;
     case 'follow': {
       const i = S.followsByMe.indexOf(id);
       if (i >= 0) S.followsByMe.splice(i, 1); else S.followsByMe.push(id);
@@ -332,6 +358,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'delPost': if (confirm(t('confirmDeletePost'))) { S.posts = S.posts.filter((p) => p.id !== id); S.queue = S.queue.filter((q) => q.post !== id); save(); back(); } break;
     case 'delChar': if (confirm(t('confirmDeleteChar'))) {
+      S.deletedSeeds = [...(S.deletedSeeds || []), id];
       S.chars = S.chars.filter((c) => c.id !== id); S.posts = S.posts.filter((p) => p.author !== id);
       S.posts.forEach((p) => { p.comments = p.comments.filter((c) => c.author !== id); });
       S.followsByMe = S.followsByMe.filter((x) => x !== id); S.followsMe = S.followsMe.filter((x) => x !== id);
@@ -378,23 +405,51 @@ function keepCharForm() {
   const f = ['cName', 'cHandle', 'cBio', 'cPers'].map((k) => [k, val(k)]);
   render(true); f.forEach(([k, v]) => { if ($('#' + k)) $('#' + k).value = v; });
 }
-document.addEventListener('input', (e) => { if (e.target.id === 'draft') App.draft.text = e.target.value; });
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'draft') App.draft.text = e.target.value;
+  if (e.target.id === 'search') { const q = e.target.value.trim().toLowerCase(); $$('#charList .list-row').forEach((r) => { r.style.display = !q || r.dataset.q.includes(q) ? '' : 'none'; }); }
+});
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && e.target.id === 'msg' && matchMedia('(pointer: fine)').matches) { e.preventDefault(); $('[data-act="send"]').click(); } });
 $('#photoInput').addEventListener('change', async (e) => {
   const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f || !App.onPhoto) return;
   try { App.onPhoto(await fileToDataURL(f)); } catch (err) { toast(err.message); }
 });
 
+/* ---------- iPhone notifications for reactions that arrive while the app is closed ---------- */
+function scheduleNativeNotifications() {
+  const now = Date.now(), items = [];
+  S.queue.filter((q) => q.at > now).sort((a, b) => a.at - b.at).forEach((q) => {
+    const c = charById(q.who); if (!c) return;
+    const post = q.post && S.posts.find((p) => p.id === q.post);
+    let body = null;
+    if (q.kind === 'like' && post && post.author === 'me') body = `${c.handle} liked your post.`;
+    if (q.kind === 'comment' && post && (post.author === 'me' || q.parent)) body = `${c.handle} ${q.parent ? 'replied' : 'commented'}: "${q.text}"`;
+    if (q.kind === 'follow') body = `${c.handle} started following you.`;
+    if (q.kind === 'dmstart') body = `${c.handle} sent you a message.`;
+    if (body) items.push({ id: 'q' + q.at + c.id, title: 'Sada', body, delay: Math.max(1, Math.round((q.at - now) / 1000)) });
+  });
+  if (items.length) Native.notify({ op: 'schedule', items: items.slice(0, 60) });
+}
+
 /* ---------- start ---------- */
 (async function main() {
   S = await Store.get('state', null);
   if (!S) S = freshState();
   S = { ...freshState(), ...S };
+  // bring in starter characters added in newer versions, and their profile photos
+  SEED_CHARACTERS.forEach((sc) => {
+    const ex = S.chars.find((c) => c.id === sc.id);
+    if (ex) { if (!ex.avatarPrompt) ex.avatarPrompt = sc.avatarPrompt; }
+    else if (!(S.deletedSeeds || []).includes(sc.id)) S.chars.push({ ...sc });
+  });
   setLang(S.settings.lang || 'en');
   render(true);
   setInterval(() => { if (S.queue.length) Engine.tick(); }, 1000);
   setInterval(() => { if (['home', 'notifs', 'post'].includes(cur().v) && !document.activeElement.matches('textarea,input')) render(); }, 30000);
-  if (S.onboarded && S.settings.apiKey && Date.now() - S.lastFeedGen > 45 * 60 * 1000) refreshFeed(3);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) saveSoon.flush(); else if (S.queue.length) Engine.tick(); });
+  if (S.onboarded && S.settings.apiKey && Date.now() - S.lastFeedGen > 45 * 60 * 1000) refreshFeed(4);
+  window.__onBackground = () => { saveSoon.flush(); scheduleNativeNotifications(); };
+  window.__onForeground = () => { Native.notify({ op: 'clear' }); if (S.queue.length) Engine.tick(); render(); };
+  Native.notify({ op: 'clear' });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) window.__onBackground(); else window.__onForeground(); });
   window.__ready = true;
 })();

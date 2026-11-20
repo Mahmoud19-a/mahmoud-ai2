@@ -49,6 +49,7 @@ function shrinkDataURL(src, maxDim = 768) {
 /* Native bridges (iOS) with browser fallbacks */
 const Native = {
   has(n) { return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[n]); },
+  notify(msg) { if (this.has('notify')) window.webkit.messageHandlers.notify.postMessage(msg); },
   share(files) {
     if (this.has('share')) { window.webkit.messageHandlers.share.postMessage({ files }); return; }
     files.forEach((f) => {
