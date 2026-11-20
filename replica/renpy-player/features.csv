@@ -1,0 +1,33 @@
+feature,area,priority,original,clone,notes
+Library of imported games (grid with covers),library,must,yes,no,
+Empty state with how-to-import guide,library,must,yes,no,
+Import game from Files as .zip,import,must,yes,no,
+Import game as an unzipped folder,import,should,yes,no,guess
+Validate the import is a Ren'Py game (game/ folder; .rpy/.rpyc/.rpa),import,must,yes,no,
+Import progress and error messages (not Ren'Py / no space),import,must,yes,no,
+Run Ren'Py 8.x games full-screen,player,must,yes,no,needs renpy-build for iOS
+Run Ren'Py 7.x (Python 2) games,player,should,yes,no,second runtime; after MVP
+Choose engine version per game,player,should,yes,no,
+Per-game performance / compatibility settings (renderer / scaling),player,should,yes,no,
+Touch: tap to advance and swipe to roll back,player,must,yes,no,Ren'Py has built-in touch support
+On-screen overlay: back / menu / settings,player,must,yes,no,seen in screenshot
+Keyboard for text-input screens,player,must,yes,no,
+Pause and resume when app goes to background,player,must,yes,no,
+Per-game save list with thumbnails,saves,must,yes,no,seen in screenshot
+Manual save backup,saves,must,yes,no,
+Automatic backup before launch,saves,should,yes,no,
+Restore a backup,saves,must,yes,no,
+Import saves from PC / other installs,saves,must,yes,no,
+Export saves (share sheet),saves,should,yes,no,guess
+Delete saves,saves,must,yes,no,
+Save editor (edit variables / persistent),saves,could,yes,no,guess from search result
+Rename game / set cover / delete game,library,must,yes,no,
+Search and sort library,library,could,yes,no,guess
+App languages EN / RU / KO / ZH / JA,app,could,yes,no,ours: Arabic + English first
+Translation tool for games,tools,could,yes,no,guess (translate icon)
+Guide / help screens,app,should,yes,no,book icon
+App settings,app,should,yes,no,
+Unlock via in-app purchase,app,could,yes,skip,our version is free
+Spark name / icon / artwork / store text,brand,could,yes,skip,owned by Spark and its artist: make our own
+Bundled games,content,could,no,skip,users import games they own
+App Store distribution,distribution,could,yes,skip,sideload with SideStore; App Store rule 2.5.2 blocks downloaded code

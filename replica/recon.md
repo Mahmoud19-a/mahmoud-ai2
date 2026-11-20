@@ -1,137 +1,128 @@
-# Recon map: Spark – Ren'Py Novels (iOS)
+# Recon map: Aspect – AI-Only Social Media (iOS)
 
-Scope: an iOS app that runs **PC Ren'Py visual novels** on iPhone/iPad. Core slice: import a game, keep a library, launch it with a suitable engine version, play with touch controls, and manage saves (backup, restore, import, delete).
-For: the user's own app, sideloaded with SideStore. It gets an original name, icon and art, and the same kind of functionality.
-Date: 2026-11-11
-Previous recon (Lawha / design editor) moved to `replica/lawha/`.
+Scope: the core loop of a social network where **you are the only human**. You post text or photos, and AI characters like, comment, follow and DM you. They also post their own content to a feed you can browse and comment on, and you can create your own characters.
+For: a **personal** version for the user only, sideloaded with SideStore. It has no other humans and no paywall: the things Aspect gates behind Aspect Pro are unlimited here.
+Date: 2026-11-20
+Previous recons moved to `replica/lawha/` (design editor) and `replica/renpy-player/` (Ren'Py player).
 
-> **Evidence note.** This session's network blocks apps.apple.com and appadvice.com. The facts come from three places:
-> - the App Store screenshot the user sent (`screens/S00-appstore-listing.png`, kept locally and not committed)
-> - web search snippets of the App Store listing
-> - a third-party SourceForge listing
->
-> Anything not visible there is marked `guess`. The user has the app installed through TestFlight. Screenshots of each screen from their own phone would raise most guesses to `high`.
+> **Evidence note.** This session's network blocks apps.apple.com, so the facts come from web search snippets of the App Store listing, press coverage, Product Hunt and review aggregators. Anything not confirmed there is marked `guess`. Screenshots of each screen (without a Pro login trick) from the user's own install would raise most guesses to `high`.
 
 ## Sources
 
 | # | source | URL | notes |
 | --- | --- | --- | --- |
-| 1 | App Store listing (search snippet) | https://apps.apple.com/us/app/-/id6474479684 | $6.99 paid + in-app purchases. Utilities. iOS 15.5+. "Data Not Collected". Says it is an independent tool, not affiliated with Ren'Py. |
-| 2 | App Store listing (user screenshot) | `replica/screens/S00-appstore-listing.png` | 4.8★ from 223 ratings, #47 Utilities. Icon row shows translate, book, wrench, import and settings icons. Screenshot "Manage Games & Saves" shows the game screen with back, "Game" chip and gear, plus an "All Saves" list with slots like `auto-7-LT1` and **+** / **…** buttons. |
-| 3 | SourceForge mirror listing | https://sourceforge.net/app/spark-renpy-novels/iphone/ | Library: import, organise, launch. **Several Ren'Py engine versions**, chosen per novel. Per-novel performance and compatibility settings. Saves: manual and automatic backups, restore, import from other installs, delete. Languages: EN, RU, KO, ZH-Hans, JA. |
-| 4 | Similar apps in the category | https://renpy-pocket-faq.pages.dev, https://mwm.ai/apps/renpyemu-for-ren-py/6751824770 | Import a game as a .zip from Files/Safari. Import PC saves. Warnings: PC save tokens may not match on another device; games with native Python extensions may not run. |
-| 5 | Ren'Py itself (open source, MIT) | https://www.renpy.org, https://github.com/renpy/renpy, https://github.com/renpy/renpy-build | The engine. Official iOS builds go through `renios` / `renpy-build`. **This is the part we build on.** |
-| 6 | The user's own TestFlight install | (on the user's phone) | To do: screenshot every screen into `replica/screens/` |
+| 1 | App Store listing | https://apps.apple.com/us/app/aspect-ai-only-social-media/id6502742786 | "AI-only social media where you are the only human". Free with in-app purchases (Aspect Pro weekly / yearly). Developer Arch Platforms, Inc. |
+| 2 | Swiss App Store listing (prices) | https://apps.apple.com/ch/app/aspect-ai-only-social-media/id6502742786?l=en-GB | Pro Yearly CHF 40, Pro Weekly CHF 7 |
+| 3 | Paywall library | https://adapty.io/paywall-library/aspect/ | Pro Yearly $39.99 (US). Share posts and photos, chat with AI characters, **create your own characters**. |
+| 4 | Press: BGR | https://bgr.com/tech/in-this-bizarre-new-social-media-app-every-user-other-than-you-is-ai/ | Every user other than you is AI. Likes, comments, followers, notifications. |
+| 5 | Product Hunt (launch July 2, 2024) | https://www.producthunt.com/products/aspect-an-ai-social-app | Maker: share posts, browse your feed, **chat via DMs**, and more |
+| 6 | User reviews | https://justuseapp.com/en/app/6502742786/aspect-nur-ki-social-media/reviews | Complaints: "almost everything is paywalled", "only THREE DMs without Pro". Praise: "it's like actual people". |
+| 7 | Similar app (SocialAI) | https://techcrunch.com/2024/09/17/socialai-offers-a-twitter-like-diary-where-ai-bots-respond-to-your-posts/ | Pattern: AI replies, replies to replies, likes on comments |
 
 ## Core loop
 
-Get a PC Ren'Py game (.zip) into the app, then tap it in the library, then it runs full-screen with touch controls. Saves stay safe and can be backed up or moved.
+You post something, and within seconds to minutes AI characters react: likes, comments in their own voices, follows. You reply, and they reply back. Between your posts, the feed is full of the characters' own posts.
 
 ## Screens
 
 | ID | screen | how to reach | purpose | key components | states seen |
 | --- | --- | --- | --- | --- | --- |
-| S01 | Library | app start | All imported novels | Grid/list of cover cards, **+** import, **…** menu, search/sort (guess) | empty (first run), filled, importing |
-| S02 | Import | **+** / import icon | Bring a game in from Files (zip or folder), share sheet or URL (guess) | Document picker, progress bar, result toast | picking, unzipping, done, error (not a Ren'Py game / no space) |
-| S03 | Game detail / launch options | tap **…** on a game | Engine version, performance and compatibility settings, rename, cover, delete | Picker (engine 7.x / 8.x), toggles, sliders, destructive button | default, changed |
-| S04 | **Player** | tap a game | Runs the novel full-screen | Ren'Py canvas, overlay: back, "Game" chip, gear (seen); rollback / skip / auto / hide UI (guess) | loading, playing, paused overlay, crash/error |
-| S05 | In-game overlay menu | gear in S04 | Quick save/load, settings, exit to library | Sheet with buttons | open |
-| S06 | Saves (per game / "All Saves") | wrench or saves entry; seen in screenshot | List of save slots with thumbnails and names (`auto-7-LT1`) | List rows with thumbnail, **+** (new backup / import), **…** (actions) | empty, filled |
-| S07 | Save actions | **…** on a save | Backup, restore, export, delete | Action sheet, confirm dialog | — |
-| S08 | Backups | from S06 | Manual and automatic backups, restore | List, restore button | empty, filled |
-| S09 | Save editor (guess, from search result) | from S07 | Edit variables in a save / persistent data | Key-value list, search, edit field | loading, error (unsupported format) |
-| S10 | Translate (guess, translate icon) | icon row | Language / translation options for a game | Language list | — |
-| S11 | Guide (book icon) | icon row | How to import games and saves | Text pages | — |
-| S12 | App settings (gear icon) | icon row | Global defaults, storage, about | Form | — |
-| S13 | Paywall / in-app purchase (guess) | locked feature | Unlock extras | Price buttons | — |
+| S01 | Onboarding | first launch | Name, photo, interests | Steps, avatar picker, chips | each step, skip |
+| S02 | **Home feed** | tab 1 | Posts from AI characters (and yours) | Post cards (avatar, name, @handle, text, photo, like/comment counts), pull to refresh | loading, filled, generating new posts |
+| S03 | Post detail | tap a post | Comments thread | Post, comment list, nested replies, like on comment, reply box | no comments yet, AI typing (guess) |
+| S04 | Compose | + tab / button | Write a post, attach a photo | Text field, photo picker, post button | empty, with photo, posting |
+| S05 | Notifications | tab | New likes, comments, followers | Grouped rows with avatars | empty, filled, unread dots |
+| S06 | DMs list | tab | Conversations with characters | Rows with last message, time | empty, filled |
+| S07 | DM chat | tap a conversation | One-to-one chat with a character | Bubbles, input, typing indicator, photo send (guess) | empty, typing, **limit reached (Pro paywall)** |
+| S08 | Character profile | tap an avatar | Bio, followers/following, their posts, follow + message buttons | Header, stats, grid/list | — |
+| S09 | My profile | tab | My posts, followers count | Header, edit button, posts | no posts |
+| S10 | Edit profile | from S09 | Name, bio, photo | Form | — |
+| S11 | Create character | from explore/profile (#3) | Name, look, personality, bio | Form, avatar generate/upload | — |
+| S12 | Explore / search (guess) | tab | Find characters, trending | Search, suggested characters | — |
+| S13 | Paywall | DM limit, locked feature | Aspect Pro weekly/yearly | Plan cards | — |
+| S14 | Settings | from profile | Account, notifications, delete data | List | — |
 
 ## Flows
 
 ```
-F01 Import and play a game
-    S01 -> S02 (pick .zip in Files) -> unzip/validate -> S01 (new card) -> S04 playing
-    happy path taps: ~4
-    edge: zip contains a nested folder; not a Ren'Py game; .rpa archives; huge game (GBs, low storage);
-          game made for Ren'Py 6/7 (Python 2) vs 8 (Python 3); game needs native Python modules
+F01 Post and get reactions (the core)
+    S02 -> S04 write + photo -> post -> S02 (my post on top) -> likes/comments trickle in -> S05 badge -> S03
+    happy path taps: 3
+    edge: no network / AI error, inappropriate text, photo too big, offline post
 
-F02 Play with touch
-    S04: tap = advance, swipe/back = rollback, long-press or 2-finger = hide UI (guess), gear -> S05
-    edge: text input screens need the keyboard; landscape vs portrait; app goes to background mid-scene
+F02 Reply in a comment thread
+    S03 -> reply to a character -> character replies back (and others join)
+    edge: long threads, several characters arguing
 
-F03 Back up and restore saves
-    S06 -> + backup -> S08 -> restore -> S04 continues from that save
-    happy path taps: ~4
-    edge: restore over newer saves (confirm), auto backup before every launch (guess)
+F03 DM a character
+    S08 -> Message -> S07 -> chat
+    edge: Aspect limits free users to 3 DMs (#6) -> ours: unlimited
 
-F04 Import PC saves
-    S06 -> + -> Files -> pick saves folder/zip -> slots appear
-    edge: save made by another engine version; PC save token mismatch (Ren'Py 8 "save security")
+F04 Browse and comment on AI posts
+    S02 -> like / S03 comment -> author replies
 
-F05 Change engine version / compatibility for one game
-    S01 -> … -> S03 -> pick engine, renderer, performance -> launch
-    edge: wrong engine -> game error screen must offer "try another engine"
+F05 Create a character
+    S11 -> name, personality, avatar -> it starts posting and reacting
 
-F06 Delete / rename a game
-    S01 -> … -> S03 -> delete (confirm)
+F06 Follow / get followed
+    new characters follow you over time -> S05 "X followed you" -> S08
 ```
 
 ## Components
 
 | component | variants | states | used on |
 | --- | --- | --- | --- |
-| Game card | grid, list | normal, importing (progress), broken | S01 |
-| Icon button (round, glass) | back, share, gear, +, … | default, pressed | all |
-| Chip | "Game", engine version | — | S04, S03 |
-| Action sheet / context menu | — | — | S01, S06, S07 |
-| Confirm dialog | destructive | — | delete, restore |
-| Document picker (system) | zip, folder | — | S02, F04 |
-| Progress bar / toast | — | — | S02 |
-| Save row | with thumbnail, timestamp, slot name | selected | S06, S08 |
-| Toggle / picker / slider rows | — | — | S03, S12 |
-| Player overlay | — | shown, hidden | S04 |
-
-Look and feel (screenshot): dark UI, glassy round buttons, serif display headings. **Do not copy the icon or the anime artwork.** They belong to Spark or its artist.
+| Post card | text, text + photo, mine | liked, loading image | S02, S08, S09 |
+| Avatar | small, large, with ring (new) | loading | everywhere |
+| Comment row | top-level, reply | liked, typing placeholder | S03 |
+| Action bar | like, comment, share | counts animate | S02, S03 |
+| Tab bar | home, explore, +, notifications/DMs, profile | badge | all |
+| Chat bubble | mine, theirs, photo | sending, typing dots | S07 |
+| Notification row | like, comment, follow | unread | S05 |
+| Composer | text, photo | posting | S04, S03, S07 |
+| Follow button | follow, following | — | S08 |
+| Sheet / toast | — | — | various |
 
 ## Inferred data model
 
 ```
-Game        id, title, folder_path, cover_path?, engine_version (e.g. "8.3"|"7.6"),
-            settings {renderer, performance_mode, scale, ...}, size_bytes, added_at, last_played_at
-            evidence: #3 per-novel engine + settings, S01, S03 · confidence: high (fields: medium)
+User (me)    name, handle, avatar, bio, interests[]
+             evidence: onboarding/profile in #4 · confidence: medium
 
-SaveSlot    game_id, slot_name ("auto-7-LT1", "1-1-LT1"), file_path, thumbnail, saved_at
-            evidence: S00 screenshot "All Saves" rows; Ren'Py save naming · confidence: high
+Character    id, name, handle, avatar, bio, personality (prompt), interests[], is_custom, followed_by_me, follows_me
+             evidence: #3 create your own characters, #4 · confidence: high (fields: medium)
 
-Backup      id, game_id, kind (manual|auto), created_at, zip_path, slot_count
-            evidence: #3 manual/automatic backups · confidence: high
+Post         id, author_id (me | character), text, image?, created_at, like_count, liked_by_me
+             evidence: #1, #4 · confidence: high
 
-Persistent  game_id, file_path (Ren'Py "persistent" file)
-            evidence: Ren'Py internals; save editor (#4) · confidence: medium
+Comment      id, post_id, parent_id?, author_id, text, created_at, likes
+             evidence: #4, #7 replies to replies · confidence: high
 
-Engine      version, python (2|3), bundled (bool)
-            evidence: #3 several engine versions · confidence: high
+Like         target (post|comment), author_id, created_at
+Follow       follower_id, followee_id, created_at
+Notification id, kind (like|comment|follow|dm), actor_id, target_id, read, created_at
+DMThread     character_id, messages[] (id, from, text, image?, created_at)
+             evidence: #5 DMs, #6 DM limit · confidence: high
 ```
-
-Relationships: Game 1-n SaveSlot, Game 1-n Backup, Engine 1-n Game.
 
 ## Feature matrix
 
-See `features.csv`. Must: 16, should: 8, could: 4, skip: 4.
+See `features.csv`. Must: 17, should: 9, could: 4, skip: 4.
 
-## Out of scope / must not be copied
+## Out of scope / not copied
 
-- **The name "Spark", the icon, the anime artwork, the screenshots and the App Store text.** Copying these exactly is what would cause problems (trademark and copyright). Our version gets its own name and its own art.
-- **Spark's own code.** We do not decompile or inspect the app. The engine comes from Ren'Py's public open-source code instead.
-- **Games themselves.** The app ships with no games. Users import games they own or that are free to download.
-- **The App Store presence and ratings.** This is a sideloaded app. A public App Store release would also hit Apple rule 2.5.2 (apps may not run downloaded code), which a sideload avoids.
+- **The name "Aspect", its logo, its characters, its texts and its prompts.** We write our own characters and our own prompts.
+- **Their AI service.** Aspect runs its own paid AI backend. Our version needs **an AI model of its own**. That is the one thing that is not free by default: either the user's own API key (Claude or another provider; the cost is small for one person) or a free API tier, which has limits.
+- **Paywall and subscription.** None; the app is personal.
+- **Other real people.** None, by design.
 
 ## Size
 
-Screens 13, flows 6, entities 5.
+Screens 14, flows 6, entities 8.
 
 Hard parts:
-1. **Building the Ren'Py engine for iOS as a "player" that loads any game from a folder**, instead of one game baked into the app. This needs Ren'Py's `renpy-build` toolchain (Python, SDL2, ffmpeg, pygame_sdl2) cross-compiled for iOS on a Mac. That is hours of CI and a lot of trial and error.
-2. **Several engine versions.** Ren'Py 7 runs on Python 2 and Ren'Py 8 runs on Python 3, so supporting both means shipping two full runtimes in one app.
-3. **Game compatibility.** Some PC games bundle native modules or desktop-only code, and save files from a PC can carry security tokens that do not match on the phone.
+1. **The AI behaviour.** Many characters with distinct voices that stay in character, react at believable times (not all at once), reply in threads, and remember context in DMs. This is mostly prompt design plus a small scheduler.
+2. **Where the AI runs, and its key.** A personal sideloaded app can call the AI API directly with the user's own key, stored in the iPhone Keychain. That needs no server, but the key must never be committed to the repo.
+3. **Photos.** The characters need to see your photo, which needs a vision-capable model. Characters' own photo posts need image generation or a free stock-photo source.
 
-Size: **XL as specified.** Rescoped MVP: the **Ren'Py 8.x engine only**, plus library, zip import, player with touch controls, and save backup/restore/import/delete. That is **L**. Ren'Py 7 support, the save editor and translation come after the MVP works.
+Size: **M** (a few weeks) for a personal, local-only version: data on the phone, AI called directly, no server or accounts. Reusing the Lawha setup (web app inside an iOS shell, IPA built by GitHub Actions) makes the first IPA quick.
