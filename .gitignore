@@ -4,3 +4,4 @@ ios/*.xcodeproj/
 .DS_Store
 node_modules/
 replica/screens/*.png
+ios-sada/*.xcodeproj/

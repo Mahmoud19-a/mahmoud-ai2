@@ -1,34 +1,34 @@
 feature,area,priority,original,clone,notes
-Onboarding: name / photo / interests,onboarding,must,yes,no,
-Home feed of AI character posts,feed,must,yes,no,
-Pull to refresh generates new character posts,feed,must,yes,no,guess
-Post text,compose,must,yes,no,
-Post with a photo,compose,must,yes,no,
-AI characters like my post,reactions,must,yes,no,
-AI characters comment on my post in their own voice,reactions,must,yes,no,
-Reactions arrive over time (not all at once),reactions,must,yes,no,guess: matters for realism
-Reply to a comment and the character replies back,comments,must,yes,no,
-Several characters reply to each other in threads,comments,should,yes,no,
-AI understands my photo (vision),reactions,should,yes,no,guess
-Like a character's post / comment,feed,must,yes,no,
-Comment on a character's post and get a reply,feed,must,yes,no,
-Notifications: likes / comments / new followers,notifications,must,yes,no,
-AI characters follow me over time,social,should,yes,no,
-Follow / unfollow characters,social,must,yes,no,
-Character profile with bio and posts,profiles,must,yes,no,
-My profile with my posts and follower count,profiles,must,yes,no,
-Edit my profile,profiles,should,yes,no,
-DMs with characters,dm,must,yes,no,
-Unlimited DMs,dm,must,pro,no,Aspect: 3 free DMs then paywall; ours unlimited
-DM memory of earlier conversation,dm,should,yes,no,guess
-Create my own character (name / personality / avatar),characters,should,yes,no,
-Explore / search characters,explore,could,yes,no,guess
-Character posts with images,feed,could,yes,no,guess: needs image generation or a free stock-photo source
-Push / local notifications when someone reacts,notifications,could,yes,no,guess
-Arabic and English (characters speak the language I post in),app,should,no,no,ours
-Data stays on my phone (no account),app,should,no,no,ours
-Settings: AI key / model / reset data,app,should,no,no,ours
-Export / backup my data,app,could,no,no,ours
+Onboarding: name / photo / interests,onboarding,must,yes,yes,
+Home feed of AI character posts,feed,must,yes,yes,
+Pull to refresh generates new character posts,feed,must,yes,yes,guess
+Post text,compose,must,yes,yes,
+Post with a photo,compose,must,yes,yes,
+AI characters like my post,reactions,must,yes,yes,
+AI characters comment on my post in their own voice,reactions,must,yes,yes,
+Reactions arrive over time (not all at once),reactions,must,yes,yes,guess: matters for realism
+Reply to a comment and the character replies back,comments,must,yes,yes,
+Several characters reply to each other in threads,comments,should,yes,yes,
+AI understands my photo (vision),reactions,should,yes,yes,guess
+Like a character's post / comment,feed,must,yes,yes,
+Comment on a character's post and get a reply,feed,must,yes,yes,
+Notifications: likes / comments / new followers,notifications,must,yes,yes,
+AI characters follow me over time,social,should,yes,yes,
+Follow / unfollow characters,social,must,yes,yes,
+Character profile with bio and posts,profiles,must,yes,yes,
+My profile with my posts and follower count,profiles,must,yes,yes,
+Edit my profile,profiles,should,yes,yes,
+DMs with characters,dm,must,yes,yes,
+Unlimited DMs,dm,must,pro,yes,Aspect: 3 free DMs then paywall; ours unlimited
+DM memory of earlier conversation,dm,should,yes,yes,guess
+Create my own character (name / personality / avatar),characters,should,yes,yes,
+Explore / search characters,explore,could,yes,partial,explore list yes; no search
+Character posts with images,feed,could,yes,yes,guess: needs image generation or a free stock-photo source
+Push / local notifications when someone reacts,notifications,could,yes,no,not built (in-app notifications only)
+Arabic and English (characters speak the language I post in),app,should,no,yes,ours
+Data stays on my phone (no account),app,should,no,yes,ours
+Settings: AI key / model / reset data,app,should,no,yes,ours
+Export / backup my data,app,could,no,yes,ours
 Aspect Pro subscription / paywall,app,could,yes,skip,personal app: no paywall
 Aspect name / logo / characters / prompts,brand,could,yes,skip,make our own
 Aspect AI backend,backend,could,yes,skip,use the user's own AI key

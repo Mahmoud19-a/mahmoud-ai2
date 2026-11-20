@@ -1,0 +1,60 @@
+name: Build Sada IPA (unsigned, for SideStore / AltStore)
+
+on:
+  push:
+    branches: [main, 'claude/**']
+    paths: ['social/**', 'ios-sada/**', '.github/workflows/sada.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec ios-sada/project.yml
+
+      - name: Build app (no code signing)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios-sada/Sada.xcodeproj \
+            -scheme Sada \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tail -n 60
+
+      - name: Package IPA
+        run: |
+          mkdir -p out/Payload
+          cp -R build/Build/Products/Release-iphoneos/Sada.app out/Payload/
+          test -f out/Payload/Sada.app/social/index.html
+          cd out && zip -qry Sada.ipa Payload && ls -lh Sada.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sada-ipa
+          path: out/Sada.ipa
+
+      - name: Publish as a GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: sada-build-${{ github.run_number }}
+          name: Sada ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          files: out/Sada.ipa
+          body: |
+            Unsigned IPA. Install it with SideStore or AltStore, which sign it with your own Apple ID.
+            ملف IPA غير موقّع. ثبّته عن طريق SideStore أو AltStore وهما يوقّعانه بحساب Apple الخاص بك.
