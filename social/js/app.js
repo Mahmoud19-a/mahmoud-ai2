@@ -12,7 +12,7 @@ function freshState() {
   const chars = SEED_CHARACTERS.map((c) => ({ ...c }));
   return {
     me: { name: '', handle: '', bio: '', interests: '', avatar: null, emoji: '🙂' },
-    settings: { apiKey: '', model: DEFAULT_MODEL, charImages: true, lang: 'ar' },
+    settings: { apiKey: '', model: DEFAULT_MODEL, charImages: true, lang: 'en' },
     chars, followsByMe: chars.slice(0, 9).map((c) => c.id), followsMe: shuffle(chars).slice(0, 2).map((c) => c.id),
     posts: [], notifs: [], dms: {}, dmRead: {}, queue: [], lastFeedGen: 0, onboarded: false,
   };
@@ -24,7 +24,7 @@ function avatar(id, size = 42) {
   const st = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.5)}px`;
   if (id === 'me') {
     return S.me.avatar ? `<span class="av" style="${st}"><img src="${S.me.avatar}" alt=""></span>`
-      : `<span class="av" style="${st};background:#0F766E">${esc(S.me.emoji || '🙂')}</span>`;
+      : `<span class="av" style="${st};background:#14B8A6">${esc(S.me.emoji || '🙂')}</span>`;
   }
   const c = charById(id) || { emoji: '❔', color: '#999' };
   return `<span class="av" style="${st};background:${esc(c.color)}">${esc(c.emoji)}</span>`;
@@ -300,7 +300,7 @@ document.addEventListener('click', async (e) => {
   if (a !== 'post') e.stopPropagation();
   switch (a) {
     case 'tab': if (id === 'me' || !id) tab(el.dataset.v); else tab(el.dataset.v); break;
-    case 'go': go(el.dataset.v); if (el.dataset.v === 'createChar') { App.form = { emoji: '🙂', color: pick(COLORS), lang: LANG === 'ar' ? 'ar' : 'en' }; render(true); } break;
+    case 'go': go(el.dataset.v); if (el.dataset.v === 'createChar') { App.form = { emoji: '🙂', color: pick(COLORS), lang: 'en' }; render(true); } break;
     case 'back': back(); break;
     case 'char': if (id && id !== 'me') go('char', { id }); else tab('profile'); break;
     case 'post': if (cur().v !== 'post' || cur().p.id !== id) go('post', { id }); break;
@@ -390,7 +390,7 @@ $('#photoInput').addEventListener('change', async (e) => {
   S = await Store.get('state', null);
   if (!S) S = freshState();
   S = { ...freshState(), ...S };
-  setLang(S.settings.lang || 'ar');
+  setLang(S.settings.lang || 'en');
   render(true);
   setInterval(() => { if (S.queue.length) Engine.tick(); }, 1000);
   setInterval(() => { if (['home', 'notifs', 'post'].includes(cur().v) && !document.activeElement.matches('textarea,input')) render(); }, 30000);

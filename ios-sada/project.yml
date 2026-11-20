@@ -22,14 +22,15 @@ targets:
     info:
       path: Sada/Info.plist
       properties:
-        CFBundleDisplayName: صدى
+        CFBundleDisplayName: Sada
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleDevelopmentRegion: ar
+        CFBundleDevelopmentRegion: en
         UILaunchScreen:
           UIColorName: LaunchBackground
-        UIStatusBarStyle: UIStatusBarStyleDarkContent
+        UIStatusBarStyle: UIStatusBarStyleLightContent
         UIViewControllerBasedStatusBarAppearance: true
+        UIUserInterfaceStyle: Dark
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

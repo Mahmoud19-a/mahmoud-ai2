@@ -39,7 +39,7 @@ const STR = {
     deleteChar: 'Delete character', confirmDeleteChar: 'Delete this character and all its posts?', deletePost: 'Delete post', confirmDeletePost: 'Delete this post?',
   },
 };
-let LANG = 'ar';
+let LANG = 'en';
 const t = (k) => (STR[LANG] && STR[LANG][k]) || STR.en[k] || k;
 function setLang(l) { LANG = l; document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'; }
 function ago(ts) {

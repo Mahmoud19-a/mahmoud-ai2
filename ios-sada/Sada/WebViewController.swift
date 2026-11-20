@@ -8,9 +8,9 @@ final class WebViewController: UIViewController, WKUIDelegate, WKNavigationDeleg
     private let storeHandler = StoreHandler()
     private let shareHandler = ShareHandler()
     private let netHandler = NetHandler()
-    private static let paper = UIColor(red: 0xFA / 255, green: 0xF7 / 255, blue: 0xF2 / 255, alpha: 1)
+    private static let paper = UIColor.black
 
-    override var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
+    override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
     override func loadView() {
         let config = WKWebViewConfiguration()
