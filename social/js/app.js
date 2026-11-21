@@ -21,9 +21,10 @@ function freshState() {
 /* ---------- small renderers ---------- */
 const hashN = (s) => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 function avatarURL(c) {
-  const prompt = c.avatarPrompt || `candid instagram profile picture of a real person, ${c.name}, ${c.bio}, natural light, iphone photo`;
+  const prompt = c.look ? `photo of the same young woman ${c.name}: ${c.look}, smiling selfie, modest clothing, candid iphone photo, realistic`
+    : (c.avatarPrompt || `candid instagram profile picture of a real person, ${c.name}, ${c.bio}, natural light, iphone photo`);
   if (typeof STARTER !== 'undefined' && STARTER[c.id]) return `media/a/${c.id}.jpg`;
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=256&height=282&nologo=true&seed=${hashN(c.id) % 100000}`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=256&height=282&nologo=true&model=sana&seed=${c.seed || hashN(c.id) % 100000}`;
 }
 function avatar(id, size = 42) {
   const st = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.5)}px`;
@@ -38,7 +39,13 @@ function avatar(id, size = 42) {
 const nameOf = (id) => (id === 'me' ? S.me.name || t('you') : (charById(id) || { name: '?' }).name);
 const handleOf = (id) => (id === 'me' ? S.me.handle : (charById(id) || { handle: '?' }).handle);
 const fakeFollowers = (c) => 120 + (hashN(c.handle) % 4800) + (S.followsByMe.includes(c.id) ? 1 : 0);
-const imgURL = (p, w = 1024) => `https://image.pollinations.ai/prompt/${encodeURIComponent(p.imgPrompt)}?width=${w}&height=${Math.round(w * 1.1)}&nologo=true&seed=${hashN(p.id) % 100000}`;
+/* A character's new photos use her fixed look + seed, so she stays the same person. */
+function imgURL(p, w = 1024) {
+  const c = charById(p.author);
+  const prompt = c && c.look ? `photo of the same young woman ${c.name}: ${c.look}, ${p.imgPrompt}, modest clothing, candid iphone photo, realistic, instagram` : p.imgPrompt;
+  const seed = c && c.seed ? c.seed + (hashN(p.id) % 7) : hashN(p.id) % 100000;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${Math.round(w * 1.1)}&nologo=true&model=sana&seed=${seed}`;
+}
 const hasPhoto = (p) => !!(p.photo || p.image || (p.imgPrompt && S.settings.charImages));
 const photoSrc = (p, w) => p.photo || p.image || imgURL(p, w);
 const GRADS = [['#1e3a8a', '#9333ea'], ['#0f766e', '#22d3ee'], ['#9a3412', '#f59e0b'], ['#831843', '#f43f5e'], ['#14532d', '#84cc16'], ['#312e81', '#ec4899']];
@@ -223,6 +230,7 @@ V.createChar = () => {
       <div><label>${t('charHandle')}</label><input class="field" id="cHandle" dir="ltr" maxlength="24" autocapitalize="off" autocorrect="off"></div>
       <div><label>${t('charBio')}</label><input class="field" id="cBio" maxlength="160"></div>
       <div><label>${t('charPersonality')}</label><textarea class="field" id="cPers" maxlength="600"></textarea></div>
+      <div><label>Look (for her photos)</label><textarea class="field" id="cLook" maxlength="300" placeholder="e.g. 24 year old woman, long red hair, green eyes, freckles, silver hoop earrings"></textarea><p class="hint">Every photo of her uses this description, so she always looks like the same person.</p></div>
       <div><label>${t('charLang')}</label><div class="chips">${[['ar', 'langAr'], ['en', 'langEn'], ['both', 'langBoth']].map(([v, l]) => `<button class="chip ${f.lang === v ? 'on' : ''}" data-act="clang" data-l="${v}">${t(l)}</button>`).join('')}</div></div>
       <button class="btn primary" data-act="saveChar">${t('save')}</button></div>`,
   };
@@ -399,7 +407,7 @@ document.addEventListener('click', async (e) => {
       const name = val('cName'), handle = cleanHandle(val('cHandle'));
       if (!name || !handle) { (name ? $('#cHandle') : $('#cName')).focus(); return; }
       if (charByHandle(handle) || handle === S.me.handle) { toast('@' + handle + ' ✗'); return; }
-      const c = { id: 'c-' + uid(), name, handle, bio: val('cBio'), personality: val('cPers') || val('cBio'), emoji: val('cEmoji') || '🙂', color: App.form.color, lang: App.form.lang, custom: true };
+      const c = { id: 'c-' + uid(), name, handle, bio: val('cBio'), personality: val('cPers') || val('cBio'), emoji: val('cEmoji') || '🙂', color: App.form.color, lang: App.form.lang, custom: true, look: val('cLook'), seed: randi(1000, 99999) };
       S.chars.push(c); S.followsByMe.push(c.id);
       if (Math.random() < 0.8) S.queue.push({ at: Date.now() + rand(15, 90) * 1000, kind: 'follow', who: c.id });
       save(); toast(t('created')); nav.stack = [{ v: 'explore', p: {} }, { v: 'char', p: { id: c.id } }]; render(true);
@@ -409,7 +417,7 @@ document.addEventListener('click', async (e) => {
   }
 });
 function keepCharForm() {
-  const f = ['cName', 'cHandle', 'cBio', 'cPers'].map((k) => [k, val(k)]);
+  const f = ['cName', 'cHandle', 'cBio', 'cPers', 'cLook'].map((k) => [k, val(k)]);
   render(true); f.forEach(([k, v]) => { if ($('#' + k)) $('#' + k).value = v; });
 }
 document.addEventListener('input', (e) => {
@@ -492,7 +500,7 @@ function scheduleNativeNotifications() {
   // bring in starter characters added in newer versions, and their profile photos
   SEED_CHARACTERS.forEach((sc) => {
     const ex = S.chars.find((c) => c.id === sc.id);
-    if (ex) { if (!ex.avatarPrompt) ex.avatarPrompt = sc.avatarPrompt; }
+    if (ex) { ex.look = ex.look || sc.look; ex.seed = ex.seed || sc.seed; }
     else if (!(S.deletedSeeds || []).includes(sc.id)) S.chars.push({ ...sc });
   });
   setLang(S.settings.lang || 'en');

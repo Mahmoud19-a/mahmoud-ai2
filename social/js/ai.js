@@ -120,7 +120,7 @@ ${authors.map(persona).join('\n')}
 Posts can be about their day, their interests, an opinion, something funny, a question to followers. Make them feel alive and different.
 ${myLast.length ? `Sometimes (not always) a character may mention the human @${S.me.handle}, whose recent posts were: ${myLast.map((x) => '"' + x.slice(0, 120) + '"').join(', ')}.` : ''}
 Each post may get 0–2 short comments from OTHER characters, chosen from: ${S.chars.map((c) => '@' + c.handle).join(', ')}.
-About 70% of posts should have a photo, like on Instagram. For those add "image": a short English description of a candid iPhone photo the character took (their food, room, view, pet, outfit, a selfie, a place). Otherwise "image": "".
+About 70% of posts should have a photo, like on Instagram. For those add "image": a short English description of the scene: where she is, what she is doing and what she is wearing (always modest clothing), e.g. "sitting in a cafe holding a latte, wearing a beige cardigan". She is in her own photo; do not describe her face or hair (that is fixed). Otherwise "image": "".
 Captions should be short and natural like real Instagram captions; text-only posts can be longer thoughts.
 ${spareText ? `These characters have real photos in their camera roll. If one fits, use it by putting its path in "photo" (then "image" can be ""):\n${spareText}\n` : ''}Return JSON: {"posts":[{"handle":"...","text":"...","photo":"path or empty","image":"...","comments":[{"handle":"...","text":"..."}]}]}`;
     const j = await callJSON(text, 1400);
