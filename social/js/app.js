@@ -21,7 +21,7 @@ function freshState() {
 /* ---------- small renderers ---------- */
 const hashN = (s) => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 function avatarURL(c) {
-  const prompt = c.look ? `photo of the same young woman ${c.name}: ${c.look}, smiling selfie, modest clothing, candid iphone photo, realistic`
+  const prompt = c.look ? `photo of the same young woman ${c.name}: ${c.look}, smiling selfie, fully clothed, modest clothing, safe for work, candid iphone photo, realistic`
     : (c.avatarPrompt || `candid instagram profile picture of a real person, ${c.name}, ${c.bio}, natural light, iphone photo`);
   if (typeof STARTER !== 'undefined' && STARTER[c.id]) return `media/a/${c.id}.jpg`;
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=256&height=282&nologo=true&model=sana&seed=${c.seed || hashN(c.id) % 100000}`;
@@ -42,7 +42,7 @@ const fakeFollowers = (c) => 120 + (hashN(c.handle) % 4800) + (S.followsByMe.inc
 /* A character's new photos use her fixed look + seed, so she stays the same person. */
 function imgURL(p, w = 1024) {
   const c = charById(p.author);
-  const prompt = c && c.look ? `photo of the same young woman ${c.name}: ${c.look}, ${p.imgPrompt}, modest clothing, candid iphone photo, realistic, instagram` : p.imgPrompt;
+  const prompt = c && c.look ? `photo of the same young woman ${c.name}: ${c.look}, ${p.imgPrompt}, fully clothed, modest clothing, safe for work, candid iphone photo, realistic, instagram` : p.imgPrompt;
   const seed = c && c.seed ? c.seed + (hashN(p.id) % 7) : hashN(p.id) % 100000;
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${Math.round(w * 1.1)}&nologo=true&model=sana&seed=${seed}`;
 }

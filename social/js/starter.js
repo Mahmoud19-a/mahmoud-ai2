@@ -449,7 +449,7 @@ const STARTER = {
 },
 {
 "photo": "media/p/c-lauren-s1.jpg",
-"desc": "sitting at a beach bonfire at night wrapped in a blanket"
+"desc": "sitting by a cozy campfire, wearing a thick knitted turtleneck sweater and jeans"
 }
 ]
 },
