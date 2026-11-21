@@ -22,7 +22,8 @@ function freshState() {
 const hashN = (s) => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 function avatarURL(c) {
   const prompt = c.avatarPrompt || `candid instagram profile picture of a real person, ${c.name}, ${c.bio}, natural light, iphone photo`;
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=256&height=256&nologo=true&seed=${hashN(c.id) % 100000}`;
+  if (typeof STARTER !== 'undefined' && STARTER[c.id]) return `media/a/${c.id}.jpg`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=256&height=282&nologo=true&seed=${hashN(c.id) % 100000}`;
 }
 function avatar(id, size = 42) {
   const st = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.5)}px`;
@@ -31,15 +32,15 @@ function avatar(id, size = 42) {
       : `<span class="av" style="${st};background:#14B8A6">${esc(S.me.emoji || '🙂')}</span>`;
   }
   const c = charById(id) || { id: '?', emoji: '❔', color: '#999', name: '?', bio: '' };
-  const img = S.settings.charImages && c.id !== '?' ? `<img src="${avatarURL(c)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const img = c.id !== '?' && (S.settings.charImages || (typeof STARTER !== 'undefined' && STARTER[c.id])) ? `<img src="${avatarURL(c)}" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `<span class="av" style="${st};background:${esc(c.color)}">${esc(c.emoji)}${img}</span>`;
 }
 const nameOf = (id) => (id === 'me' ? S.me.name || t('you') : (charById(id) || { name: '?' }).name);
 const handleOf = (id) => (id === 'me' ? S.me.handle : (charById(id) || { handle: '?' }).handle);
 const fakeFollowers = (c) => 120 + (hashN(c.handle) % 4800) + (S.followsByMe.includes(c.id) ? 1 : 0);
-const imgURL = (p, w = 1024) => `https://image.pollinations.ai/prompt/${encodeURIComponent(p.imgPrompt)}?width=${w}&height=${w}&nologo=true&seed=${hashN(p.id) % 100000}`;
-const hasPhoto = (p) => !!(p.image || (p.imgPrompt && S.settings.charImages));
-const photoSrc = (p, w) => p.image || imgURL(p, w);
+const imgURL = (p, w = 1024) => `https://image.pollinations.ai/prompt/${encodeURIComponent(p.imgPrompt)}?width=${w}&height=${Math.round(w * 1.1)}&nologo=true&seed=${hashN(p.id) % 100000}`;
+const hasPhoto = (p) => !!(p.photo || p.image || (p.imgPrompt && S.settings.charImages));
+const photoSrc = (p, w) => p.photo || p.image || imgURL(p, w);
 const GRADS = [['#1e3a8a', '#9333ea'], ['#0f766e', '#22d3ee'], ['#9a3412', '#f59e0b'], ['#831843', '#f43f5e'], ['#14532d', '#84cc16'], ['#312e81', '#ec4899']];
 function postCard(p, detail = false) {
   const liked = p.likedByMe, n = p.comments.length, who = p.author;
@@ -103,7 +104,7 @@ V.home = () => {
   const posts = S.posts.slice().sort((a, b) => b.at - a.at);
   return {
     title: `<span class="logo">${t('app')}</span>`, right,
-    html: `<div class="composer-card">${avatar('me', 38)}<button class="fake" data-act="compose">${t('whatsNew')}</button><button class="ib" data-act="compose" data-photo="1">${icon('image', 22)}</button></div>
+    html: `${storiesRow()}<div class="composer-card">${avatar('me', 38)}<button class="fake" data-act="compose">${t('whatsNew')}</button><button class="ib" data-act="compose" data-photo="1">${icon('image', 22)}</button></div>
       ${App.generating ? `<div class="refresh muted">${t('generating')}</div>` : ''}
       ${posts.length ? posts.map((p) => postCard(p)).join('') : `<div class="empty">${t('noPosts')}<br><br><button class="btn accent" data-act="refresh">${icon('sparkles', 18)}${t('refresh')}</button></div>`}`,
   };
@@ -351,6 +352,12 @@ document.addEventListener('click', async (e) => {
       save(); render(); break;
     }
     case 'dm': go('dm', { id }); break;
+    case 'story': openStory(+el.dataset.i); break;
+    case 'storyNext': Story.i++; showStory(); break;
+    case 'storyPrev': Story.i = Math.max(0, Story.i - 1); showStory(); break;
+    case 'storyClose': closeStory(); break;
+    case 'storyChar': closeStory(); go('char', { id }); break;
+    case 'storyDM': closeStory(); go('dm', { id }); break;
     case 'notif': {
       const n = S.notifs.find((x) => x.id === id); if (!n) return; n.read = true; save();
       if (n.kind === 'dm') go('dm', { id: n.who }); else if (n.post) go('post', { id: n.post }); else go('char', { id: n.who });
@@ -385,7 +392,7 @@ document.addEventListener('click', async (e) => {
       const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 1))));
       Native.share([{ name: 'sada-backup.json', data: 'data:application/json;base64,' + b64, mime: 'application/json' }]); break;
     }
-    case 'reset': if (confirm(t('confirmReset'))) { const keepKey = S.settings; S = freshState(); S.settings = { ...keepKey }; S.onboarded = false; await Store.set('state', S); nav.stack = [{ v: 'onboard', p: {} }]; render(true); } break;
+    case 'reset': if (confirm(t('confirmReset'))) { const keepKey = S.settings; S = freshState(); S.settings = { ...keepKey }; S.onboarded = false; addStarterPosts(); await Store.set('state', S); nav.stack = [{ v: 'onboard', p: {} }]; render(true); } break;
     case 'color': App.form.emoji = val('cEmoji') || App.form.emoji; App.form.color = el.dataset.c; keepCharForm(); break;
     case 'clang': App.form.emoji = val('cEmoji') || App.form.emoji; App.form.lang = el.dataset.l; keepCharForm(); break;
     case 'saveChar': {
@@ -415,6 +422,51 @@ $('#photoInput').addEventListener('change', async (e) => {
   try { App.onPhoto(await fileToDataURL(f)); } catch (err) { toast(err.message); }
 });
 
+/* ---------- starter posts (bundled photos) ---------- */
+function addStarterPosts() {
+  if (S.starterAdded || typeof STARTER === 'undefined') return;
+  const now = Date.now();
+  Object.entries(STARTER).forEach(([cid, st]) => {
+    if (!charById(cid)) return;
+    st.posts.forEach((sp, i) => {
+      const at = now - Math.round(rand(0.5, 96) * 3600 * 1000) - i * 3600 * 1000;
+      const likers = shuffle(S.chars.filter((x) => x.id !== cid)).slice(0, randi(3, 9)).map((x) => x.id);
+      const post = { id: 'st-' + cid + '-' + i, author: cid, text: sp.text, photo: sp.photo, at, likes: randi(25, 950) + likers.length, likers, likedByMe: false, comments: [] };
+      sp.comments.forEach(([h, txt], k) => { const w = charByHandle(h); if (w && w.id !== cid) post.comments.push({ id: uid(), author: w.id, text: txt, at: at + (k + 1) * randi(5, 90) * 60000, parent: null, likes: randi(0, 30) }); });
+      S.posts.push(post);
+    });
+  });
+  S.posts.sort((a, b) => b.at - a.at); S.starterAdded = true; save();
+}
+
+/* ---------- stories ---------- */
+function storyList() {
+  const latest = {};
+  S.posts.forEach((p) => { if (p.author !== 'me' && hasPhoto(p) && S.followsByMe.includes(p.author) && (!latest[p.author] || p.at > latest[p.author].at)) latest[p.author] = p; });
+  return Object.values(latest).sort((a, b) => (storySeen(a) - storySeen(b)) || (b.at - a.at)).slice(0, 20);
+}
+const storySeen = (p) => ((S.storySeen || {})[p.author] === p.id ? 1 : 0);
+function storiesRow() {
+  const list = storyList(); if (!list.length) return '';
+  return `<div class="stories">${list.map((p, i) => `<button class="st ${storySeen(p) ? 'seen' : ''}" data-act="story" data-i="${i}"><span class="ring">${avatar(p.author, 58)}</span><small dir="ltr">${esc(handleOf(p.author)).slice(0, 11)}</small></button>`).join('')}</div>`;
+}
+const Story = { list: [], i: 0, timer: null };
+function openStory(i) {
+  Story.list = storyList(); Story.i = i; $('#story').classList.remove('hidden'); showStory();
+}
+function showStory() {
+  clearTimeout(Story.timer);
+  const p = Story.list[Story.i]; if (!p) { closeStory(); return; }
+  (S.storySeen = S.storySeen || {})[p.author] = p.id; save();
+  $('#storyBars').innerHTML = Story.list.map((_, k) => `<i class="${k < Story.i ? 'done' : k === Story.i ? 'run' : ''}"></i>`).join('');
+  $('#storyHead').innerHTML = `<button class="row" data-act="storyChar" data-id="${p.author}">${avatar(p.author, 32)}<b dir="ltr">${esc(handleOf(p.author))}</b><small>${ago(p.at)}</small></button><span class="spacer"></span>
+    <button class="ib" data-act="storyDM" data-id="${p.author}">${icon('send', 22)}</button><button class="ib" data-act="storyClose">${icon('x', 24)}</button>`;
+  $('#storyImg').src = photoSrc(p, 1024);
+  $('#storyCap').textContent = p.text || '';
+  Story.timer = setTimeout(() => { Story.i++; showStory(); }, 5000);
+}
+function closeStory() { clearTimeout(Story.timer); $('#story').classList.add('hidden'); render(); }
+
 /* ---------- iPhone notifications for reactions that arrive while the app is closed ---------- */
 function scheduleNativeNotifications() {
   const now = Date.now(), items = [];
@@ -436,6 +488,7 @@ function scheduleNativeNotifications() {
   S = await Store.get('state', null);
   if (!S) S = freshState();
   S = { ...freshState(), ...S };
+  if (!S.storySeen) S.storySeen = {};
   // bring in starter characters added in newer versions, and their profile photos
   SEED_CHARACTERS.forEach((sc) => {
     const ex = S.chars.find((c) => c.id === sc.id);
@@ -443,6 +496,7 @@ function scheduleNativeNotifications() {
     else if (!(S.deletedSeeds || []).includes(sc.id)) S.chars.push({ ...sc });
   });
   setLang(S.settings.lang || 'en');
+  addStarterPosts();
   render(true);
   setInterval(() => { if (S.queue.length) Engine.tick(); }, 1000);
   setInterval(() => { if (['home', 'notifs', 'post'].includes(cur().v) && !document.activeElement.matches('textarea,input')) render(); }, 30000);

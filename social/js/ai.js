@@ -109,6 +109,11 @@ Return JSON: {"replies":[{"handle":"${target.handle}","text":"..."}]}`;
   async generateFeed(n = 3, only = null) {
     const authors = only || shuffle(S.chars).slice(0, Math.min(n, S.chars.length));
     const myLast = S.posts.filter((p) => p.author === 'me').slice(0, 2).map((p) => p.text).filter(Boolean);
+    // photos bundled with the app that this character has not posted yet
+    const used = new Set(S.posts.map((p) => p.photo).filter(Boolean));
+    const spare = {};
+    authors.forEach((c) => { const st = typeof STARTER !== 'undefined' && STARTER[c.id]; if (st) spare[c.handle] = st.spare.filter((s) => !used.has(s.photo)); });
+    const spareText = Object.entries(spare).filter(([, l]) => l.length).map(([h, l]) => `@${h}: ${l.map((s) => `"${s.photo}" = ${s.desc}`).join('; ')}`).join('\n');
     const text = `Write ONE new social media post for each of these characters:
 ${authors.map(persona).join('\n')}
 
@@ -117,14 +122,15 @@ ${myLast.length ? `Sometimes (not always) a character may mention the human @${S
 Each post may get 0–2 short comments from OTHER characters, chosen from: ${S.chars.map((c) => '@' + c.handle).join(', ')}.
 About 70% of posts should have a photo, like on Instagram. For those add "image": a short English description of a candid iPhone photo the character took (their food, room, view, pet, outfit, a selfie, a place). Otherwise "image": "".
 Captions should be short and natural like real Instagram captions; text-only posts can be longer thoughts.
-Return JSON: {"posts":[{"handle":"...","text":"...","image":"...","comments":[{"handle":"...","text":"..."}]}]}`;
+${spareText ? `These characters have real photos in their camera roll. If one fits, use it by putting its path in "photo" (then "image" can be ""):\n${spareText}\n` : ''}Return JSON: {"posts":[{"handle":"...","text":"...","photo":"path or empty","image":"...","comments":[{"handle":"...","text":"..."}]}]}`;
     const j = await callJSON(text, 1400);
     const now = Date.now();
     (j.posts || []).forEach((p, i) => {
       const c = charByHandle(p.handle); if (!c || !p.text) return;
       const at = now - i * randi(60, 900) * 1000;
       const likers = shuffle(S.chars.filter((x) => x.id !== c.id)).slice(0, randi(1, 5)).map((x) => x.id);
-      const post = { id: uid(), author: c.id, text: String(p.text).trim(), imgPrompt: p.image || '', at, likes: randi(4, 380) + likers.length, likers, likedByMe: false, comments: [] };
+      const own = spare[c.handle] && spare[c.handle].find((s) => s.photo === p.photo);
+      const post = { id: uid(), author: c.id, text: String(p.text).trim(), photo: own ? own.photo : undefined, imgPrompt: own ? '' : (p.image || ''), at, likes: randi(4, 380) + likers.length, likers, likedByMe: false, comments: [] };
       (p.comments || []).forEach((cm, k) => { const w = charByHandle(cm.handle); if (w && cm.text && w.id !== c.id) post.comments.push({ id: uid(), author: w.id, text: String(cm.text).trim(), at: at + (k + 1) * randi(60, 600) * 1000, parent: null, likes: randi(0, 20) }); });
       S.posts.push(post);
     });
